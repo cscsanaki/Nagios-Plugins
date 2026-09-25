@@ -37,6 +37,6 @@ All notable changes to this repository will be documented here.
 - Added reboot-required detection and kernel status reporting.
 - Increased default timeout to 120 seconds.
 
-## 1.0.0 - 2026-09-24
+## check_dnf.py 1.0.0 - 2026-09-24
 
 - Initial DNF-focused implementation.
