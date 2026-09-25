@@ -182,6 +182,172 @@ class TestCommandExecution(unittest.TestCase):
 
         self.assertEqual(ctx.exception.code, check_dnf.UNKNOWN)
 
+class TestNagiosStatusLogic(unittest.TestCase):
+
+    def make_args(self, **overrides):
+        defaults = {
+            "all_updates": False,
+            "warn_on_any_update": False,
+            "cache_only": False,
+            "enablerepo": [],
+            "disablerepo": [],
+            "config": None,
+            "no_warn_on_lock": False,
+            "timeout": 120,
+            "warning_security": 0,
+            "critical_security": 1,
+            "no_reboot_check": False,
+            "no_reboot_critical": False,
+            "verbose": 0,
+        }
+        defaults.update(overrides)
+        return type("Args", (), defaults)()
+
+    def make_checker(self, **overrides):
+        args = self.make_args(**overrides)
+
+        with patch.object(
+            check_dnf,
+            "find_dnf",
+            return_value="/usr/bin/dnf",
+        ):
+            return check_dnf.DnfCheck(args)
+
+    def run_execute(
+        self,
+        all_packages=None,
+        security_packages=None,
+        reboot=False,
+        **args,
+    ):
+        checker = self.make_checker(**args)
+
+        all_packages = set(all_packages or [])
+        security_packages = set(security_packages or [])
+
+        all_output = ""
+        security_output = ""
+
+        with patch.object(
+            checker,
+            "check_update",
+            side_effect=[
+                (all_packages, all_output),
+                (security_packages, security_output),
+            ],
+        ), patch.object(
+            checker,
+            "reboot_required",
+            return_value=reboot,
+        ), self.assertRaises(SystemExit) as ctx:
+            checker.execute()
+
+        return ctx.exception.code
+
+    def test_no_updates_no_reboot_is_ok(self):
+        status = self.run_execute()
+
+        self.assertEqual(status, check_dnf.OK)
+
+    def test_non_security_updates_are_ok_by_default(self):
+        status = self.run_execute(
+            all_packages={
+                "podman.x86_64",
+                "rsyslog.x86_64",
+                "rsyslog-gnutls.x86_64",
+            }
+        )
+
+        self.assertEqual(status, check_dnf.OK)
+
+    def test_non_security_updates_can_warn(self):
+        status = self.run_execute(
+            all_packages={
+                "podman.x86_64",
+                "rsyslog.x86_64",
+            },
+            warn_on_any_update=True,
+        )
+
+        self.assertEqual(status, check_dnf.WARNING)
+
+    def test_security_update_is_critical(self):
+        status = self.run_execute(
+            all_packages={"podman.x86_64"},
+            security_packages={"podman.x86_64"},
+        )
+
+        self.assertEqual(status, check_dnf.CRITICAL)
+
+    def test_security_and_non_security_updates_are_critical(self):
+        status = self.run_execute(
+            all_packages={
+                "podman.x86_64",
+                "rsyslog.x86_64",
+            },
+            security_packages={"podman.x86_64"},
+        )
+
+        self.assertEqual(status, check_dnf.CRITICAL)
+
+    def test_reboot_required_is_critical(self):
+        status = self.run_execute(reboot=True)
+
+        self.assertEqual(status, check_dnf.CRITICAL)
+
+    def test_reboot_can_be_non_critical(self):
+        status = self.run_execute(
+            reboot=True,
+            no_reboot_critical=True,
+        )
+
+        self.assertEqual(status, check_dnf.OK)
+
+    def test_all_updates_makes_normal_update_critical(self):
+        status = self.run_execute(
+            all_packages={"rsyslog.x86_64"},
+            all_updates=True,
+        )
+
+        self.assertEqual(status, check_dnf.CRITICAL)
+
+    def test_security_critical_takes_priority_over_warning(self):
+        status = self.run_execute(
+            all_packages={
+                "podman.x86_64",
+                "rsyslog.x86_64",
+            },
+            security_packages={"podman.x86_64"},
+            warn_on_any_update=True,
+        )
+
+        self.assertEqual(status, check_dnf.CRITICAL)
+
+    def test_custom_security_warning_threshold(self):
+        status = self.run_execute(
+            all_packages={"pkg1.x86_64"},
+            security_packages={"pkg1.x86_64"},
+            warning_security=1,
+            critical_security=2,
+        )
+
+        self.assertEqual(status, check_dnf.WARNING)
+
+    def test_custom_security_critical_threshold(self):
+        status = self.run_execute(
+            all_packages={
+                "pkg1.x86_64",
+                "pkg2.x86_64",
+            },
+            security_packages={
+                "pkg1.x86_64",
+                "pkg2.x86_64",
+            },
+            warning_security=1,
+            critical_security=2,
+        )
+
+        self.assertEqual(status, check_dnf.CRITICAL)
 
 if __name__ == "__main__":
     unittest.main()
