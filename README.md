@@ -37,6 +37,21 @@ Test it locally:
 echo $?
 ```
 
+## NRPE integration
+
+`check_dnf.py` can be executed remotely through NRPE.
+
+The NRPE integration has been tested with:
+
+- Rocky Linux 9.8
+- NRPE 4.1.2
+- Nagios Plugins 2.5
+
+Example NRPE command definition:
+
+```text
+command[check_dnf]=/usr/lib64/nagios/plugins/check_dnf.py
+
 ## Plugins
 
 ### check_dnf.py
