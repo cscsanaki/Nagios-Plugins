@@ -112,6 +112,33 @@ See [docs/check_dnf.md](docs/check_dnf.md) for full usage information.
 | 2 | CRITICAL | Security updates, required reboot, or another configured critical condition exists |
 | 3 | UNKNOWN | The check could not reliably determine package status |
 
+For more details see `docs/check_dnf.md`.
+
+### check_librenms_validate
+
+Nagios/Icinga plugin for monitoring the result of LibreNMS `validate.php`.
+
+Features:
+
+- Maps LibreNMS `WARN` results to Nagios WARNING
+- Maps LibreNMS `FAIL` results to Nagios CRITICAL
+- Handles ANSI-coloured LibreNMS output
+- Detects execution failures and timeouts as UNKNOWN
+- Provides `failures` and `warnings` performance data
+- Supports NRPE with a narrowly scoped sudoers rule
+- Includes automated mock-based tests
+
+Currently tested with LibreNMS 26.9.1.
+
+Example:
+
+```text
+LIBRENMS WARNING: 1 warning - Your install is over 24 hours out of date, last update: Thu, 24 Sep 2026 12:37:05 +0000 | failures=0 warnings=1
+```
+
+For installation, sudoers configuration, NRPE integration, usage, and testing,
+see the [check_librenms_validate documentation](docs/check_librenms_validate.md).
+
 ## Requirements
 
 - Python 3
