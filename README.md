@@ -23,13 +23,13 @@ Features:
 - Detects whether a reboot is required
 - CRITICAL by default when a reboot is required
 - Reports the installed security kernel and currently running kernel
-- Nagios-compatible performance data
-- Repository enable/disable options
-- Optional cache-only operation
-- Configurable timeout and security thresholds
-- Verbose diagnostic output
-- Standard Nagios exit codes
-- Automated tests on Python 3.9, 3.11, and 3.13
+- Provides Nagios-compatible performance data
+- Supports repository enable/disable options
+- Supports optional cache-only operation
+- Supports configurable timeout and security thresholds
+- Provides verbose diagnostic output
+- Uses standard Nagios exit codes
+- Includes automated unit tests
 
 Example:
 
@@ -40,8 +40,6 @@ DNF CRITICAL: 0 security updates, 13 non-security updates, 13 total, reboot requ
 Full documentation:
 
 [docs/check_dnf.md](docs/check_dnf.md)
-
----
 
 ### check_librenms_validate
 
@@ -56,7 +54,7 @@ Features:
 - FAIL takes priority over WARN
 - Handles ANSI-coloured LibreNMS output
 - Detects execution failures and timeouts as UNKNOWN
-- Configurable validation timeout
+- Supports a configurable validation timeout
 - Provides `failures` and `warnings` performance data
 - Supports NRPE with a narrowly scoped sudoers rule
 - Includes automated mock-based tests
@@ -192,8 +190,7 @@ Remote test:
   -c check_librenms_validate
 ```
 
-See
-[docs/check_librenms_validate.md](docs/check_librenms_validate.md#nrpe-integration)
+See [docs/check_librenms_validate.md](docs/check_librenms_validate.md#nrpe-integration)
 for the complete sudoers and NRPE configuration.
 
 ## Nagios exit codes
@@ -212,27 +209,24 @@ Both plugins use the standard Nagios plugin exit codes:
 GitHub Actions automatically validates the repository on pushes and pull
 requests.
 
-The current CI checks include:
+Current CI checks include:
 
 - Python syntax validation
 - Python 3.9, 3.11, and 3.13 compatibility
 - `check_dnf.py` unit tests
 - Nagios status logic tests
-- Plugin CLI checks
+- `check_librenms_validate` shell syntax and CLI checks
+- `check_librenms_validate` mock-based tests
 - Detection of committed Python bytecode
 - Legacy reference checks
 
-The LibreNMS plugin also includes mock-based tests:
+The LibreNMS plugin tests do not require a LibreNMS installation:
 
 ```bash
 bash tests/test_check_librenms_validate.sh
 ```
 
-These tests do not require a LibreNMS installation.
-
 ## Requirements
-
-Requirements depend on the plugin.
 
 ### check_dnf.py
 
