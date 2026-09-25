@@ -1,0 +1,193 @@
+#!/bin/bash
+#
+# check_librenms_validate - Nagios/Icinga plugin for monitoring LibreNMS validation status.
+#
+# Copyright (c) 2026 Csanaki Csaba <cscsanaki@gmail.com>
+# SPDX-License-Identifier: MIT
+#
+# Runs LibreNMS validate.php as the librenms user and reports validation
+# failures and warnings using standard Nagios/Icinga plugin exit codes.
+#
+# Nagios exit codes:
+#   0 OK
+#   1 WARNING
+#   2 CRITICAL
+#   3 UNKNOWN
+#
+
+VERSION="1.0.3"
+VALIDATE="/opt/librenms/validate.php"
+LIBRENMS_USER="librenms"
+DEFAULT_TIMEOUT=120
+TIMEOUT="$DEFAULT_TIMEOUT"
+
+OK=0
+WARNING=1
+CRITICAL=2
+UNKNOWN=3
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Nagios/Icinga plugin for monitoring LibreNMS validate.php results.
+
+Options:
+  -t, --timeout SECONDS   Timeout for validate.php (default: ${DEFAULT_TIMEOUT})
+  -V, --version           Show plugin version and exit
+  -h, --help              Show this help and exit
+
+Nagios exit codes:
+  0 OK
+  1 WARNING
+  2 CRITICAL
+  3 UNKNOWN
+EOF
+}
+
+finish() {
+    status="$1"
+    shift
+    message="$*"
+
+    case "$status" in
+        "$OK")       printf 'LIBRENMS OK: %s\n' "$message" ;;
+        "$WARNING")  printf 'LIBRENMS WARNING: %s\n' "$message" ;;
+        "$CRITICAL") printf 'LIBRENMS CRITICAL: %s\n' "$message" ;;
+        *)
+            printf 'LIBRENMS UNKNOWN: %s\n' "$message"
+            status="$UNKNOWN"
+            ;;
+    esac
+    exit "$status"
+}
+
+join_messages() {
+    awk '
+        NF {
+            if (count++) printf "; "
+            printf "%s", $0
+        }
+        END {
+            if (count) printf "\n"
+        }
+    '
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -t|--timeout)
+            [ "$#" -ge 2 ] || finish "$UNKNOWN" "missing value for $1"
+            TIMEOUT="$2"
+            shift 2
+            ;;
+        -V|--version)
+            printf '%s %s\n' "$(basename "$0")" "$VERSION"
+            exit "$OK"
+            ;;
+        -h|--help)
+            usage
+            exit "$OK"
+            ;;
+        *)
+            finish "$UNKNOWN" "unknown option: $1"
+            ;;
+    esac
+done
+
+case "$TIMEOUT" in
+    ''|*[!0-9]*)
+        finish "$UNKNOWN" "timeout must be an integer between 1 and 3600 seconds"
+        ;;
+esac
+
+if [ "$TIMEOUT" -lt 1 ] || [ "$TIMEOUT" -gt 3600 ]; then
+    finish "$UNKNOWN" "timeout must be between 1 and 3600 seconds"
+fi
+
+[ -f "$VALIDATE" ] ||
+    finish "$UNKNOWN" "LibreNMS validate.php not found: $VALIDATE"
+
+[ -r "$VALIDATE" ] ||
+    finish "$UNKNOWN" "LibreNMS validate.php is not readable: $VALIDATE"
+
+id "$LIBRENMS_USER" >/dev/null 2>&1 ||
+    finish "$UNKNOWN" "LibreNMS user '$LIBRENMS_USER' does not exist"
+
+command -v sudo >/dev/null 2>&1 ||
+    finish "$UNKNOWN" "sudo command not found"
+
+command -v timeout >/dev/null 2>&1 ||
+    finish "$UNKNOWN" "timeout command not found"
+
+OUTPUT=$(timeout --signal=TERM --kill-after=5s "${TIMEOUT}s" \
+    sudo -n -u "$LIBRENMS_USER" "$VALIDATE" 2>&1)
+RC=$?
+
+if [ "$RC" -eq 124 ] || [ "$RC" -eq 137 ]; then
+    finish "$UNKNOWN" "validation exceeded timeout (${TIMEOUT}s)"
+fi
+
+[ -n "$OUTPUT" ] ||
+    finish "$UNKNOWN" "validate.php returned no output"
+
+# LibreNMS uses ANSI colour escape sequences around status labels even when
+# stdout is captured by a monitoring plugin. Strip those sequences before
+# parsing [OK], [WARN], [FAIL], etc.
+CLEAN_OUTPUT=$(printf '%s\n' "$OUTPUT" |
+    sed $'s/\033\\[[0-9;]*[[:alpha:]]//g')
+
+# Parse LibreNMS validation findings before evaluating the command return code.
+# validate.php can return a non-zero status when validation warnings/failures
+# are present; those are monitoring results, not execution failures.
+FAIL_MESSAGES=$(printf '%s\n' "$CLEAN_OUTPUT" |
+    sed -n 's/^[[:space:]]*\[FAIL\][[:space:]]*//p')
+WARN_MESSAGES=$(printf '%s\n' "$CLEAN_OUTPUT" |
+    sed -n 's/^[[:space:]]*\[WARN\][[:space:]]*//p')
+
+FAIL_COUNT=$(printf '%s\n' "$FAIL_MESSAGES" |
+    awk 'NF {count++} END {print count+0}')
+WARN_COUNT=$(printf '%s\n' "$WARN_MESSAGES" |
+    awk 'NF {count++} END {print count+0}')
+
+FAIL_TEXT=$(printf '%s\n' "$FAIL_MESSAGES" | join_messages)
+WARN_TEXT=$(printf '%s\n' "$WARN_MESSAGES" | join_messages)
+
+PERFDATA="failures=${FAIL_COUNT} warnings=${WARN_COUNT}"
+
+# If validate.php returned non-zero without any recognized LibreNMS FAIL/WARN
+# result, treat it as an execution/parsing failure rather than a false OK.
+if [ "$RC" -ne 0 ] && [ "$FAIL_COUNT" -eq 0 ] && [ "$WARN_COUNT" -eq 0 ]; then
+    ERROR_MESSAGE=$(printf '%s\n' "$CLEAN_OUTPUT" | join_messages)
+    if [ -z "$ERROR_MESSAGE" ]; then
+        ERROR_MESSAGE="validate.php exited with code $RC and produced no recognized validation result"
+    else
+        ERROR_MESSAGE="validate.php exited with code $RC: $ERROR_MESSAGE"
+    fi
+    finish "$UNKNOWN" "$ERROR_MESSAGE"
+fi
+
+if [ "$FAIL_COUNT" -gt 0 ]; then
+    MESSAGE="${FAIL_COUNT} failure"
+    [ "$FAIL_COUNT" -ne 1 ] && MESSAGE="${MESSAGE}s"
+
+    if [ "$WARN_COUNT" -gt 0 ]; then
+        MESSAGE="${MESSAGE}, ${WARN_COUNT} warning"
+        [ "$WARN_COUNT" -ne 1 ] && MESSAGE="${MESSAGE}s"
+    fi
+
+    [ -n "$FAIL_TEXT" ] && MESSAGE="${MESSAGE} - ${FAIL_TEXT}"
+    [ -n "$WARN_TEXT" ] && MESSAGE="${MESSAGE}; warnings: ${WARN_TEXT}"
+
+    finish "$CRITICAL" "${MESSAGE} | ${PERFDATA}"
+fi
+
+if [ "$WARN_COUNT" -gt 0 ]; then
+    MESSAGE="${WARN_COUNT} warning"
+    [ "$WARN_COUNT" -ne 1 ] && MESSAGE="${MESSAGE}s"
+    [ -n "$WARN_TEXT" ] && MESSAGE="${MESSAGE} - ${WARN_TEXT}"
+
+    finish "$WARNING" "${MESSAGE} | ${PERFDATA}"
+fi
+
+finish "$OK" "validation successful - 0 failures, 0 warnings | ${PERFDATA}"
