@@ -1,0 +1,66 @@
+name: Python plugin tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.9"
+          - "3.11"
+          - "3.13"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show Python version
+        run: python --version
+
+      - name: Compile Python plugins
+        run: |
+          python -m compileall -q plugins/
+
+      - name: Check plugin version
+        run: |
+          python plugins/check_dnf.py --version
+
+      - name: Check plugin help
+        run: |
+          python plugins/check_dnf.py --help
+
+      - name: Check for legacy YUM references
+        run: |
+          if grep -RniE '\b[Yy][Uu][Mm]\b|check_yum' \
+              plugins/ docs/ README.md; then
+            echo "Legacy YUM reference found"
+            exit 1
+          fi
+
+      - name: Check for committed Python bytecode
+        run: |
+          if find . -type f \( -name '*.pyc' -o -name '*.pyo' \) \
+              -print | grep -q .; then
+            echo "Python bytecode file found in repository"
+            exit 1
+          fi
