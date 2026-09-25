@@ -59,8 +59,7 @@ jobs:
 
       - name: Check for committed Python bytecode
         run: |
-          if find . -type f \( -name '*.pyc' -o -name '*.pyo' \) \
-              -print | grep -q .; then
-            echo "Python bytecode file found in repository"
+          if git ls-files | grep -E '\.(pyc|pyo)$'; then
+            echo "Committed Python bytecode file found in repository"
             exit 1
           fi
