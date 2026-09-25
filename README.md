@@ -2,6 +2,41 @@
 
 A collection of Nagios/Icinga monitoring plugins.
 
+## Download
+
+Latest release: **v1.2.0**
+
+Download `check_dnf.py` directly:
+
+```bash
+curl -L -o check_dnf.py https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/v1.2.0/plugins/check_dnf.py
+chmod +x check_dnf.py
+```
+
+Or clone the complete repository:
+
+```bash
+git clone https://github.com/cscsanaki/Nagios-Plugins.git
+cd Nagios-Plugins
+```
+
+See the [latest release](https://github.com/cscsanaki/Nagios-Plugins/releases/latest) for release notes and source archives.
+
+## Quick installation
+
+Install `check_dnf.py` into the standard Nagios plugin directory:
+
+```bash
+sudo install -o root -g root -m 0755 plugins/check_dnf.py /usr/lib64/nagios/plugins/check_dnf
+```
+
+Test it locally:
+
+```bash
+/usr/lib64/nagios/plugins/check_dnf
+echo $?
+```
+
 ## Plugins
 
 ### check_dnf.py
