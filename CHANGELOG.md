@@ -2,6 +2,19 @@
 
 All notable changes to this repository will be documented here.
 
+## check_librenms_validate 1.0.3 - 2026-09-25
+
+- Added `check_librenms_validate` for monitoring LibreNMS `validate.php`.
+- Maps LibreNMS `WARN` results to Nagios WARNING.
+- Maps LibreNMS `FAIL` results to Nagios CRITICAL.
+- Added ANSI colour escape sequence handling.
+- Added OK, WARNING, CRITICAL, and UNKNOWN Nagios states.
+- Added configurable 120-second validation timeout.
+- Added non-interactive execution of `validate.php` as the `librenms` user.
+- Added `failures` and `warnings` performance data.
+- Added tested NRPE integration with a narrowly scoped sudoers rule.
+- Added automated mock-based tests.
+
 ## 1.2.0 - 2026-09-24
 
 - Prepared `check_dnf.py` for standalone publication.
