@@ -49,6 +49,10 @@ jobs:
         run: |
           python plugins/check_dnf.py --help
 
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests -v
+
       - name: Check for legacy YUM references
         run: |
           if grep -RniE '\b[Yy][Uu][Mm]\b|check_yum' \
