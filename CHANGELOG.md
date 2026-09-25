@@ -15,7 +15,7 @@ All notable changes to this repository will be documented here.
 - Added tested NRPE integration with a narrowly scoped sudoers rule.
 - Added automated mock-based tests.
 
-## 1.2.0 - 2026-09-24
+## check_dnf.py 1.2.0 - 2026-09-24
 
 - Prepared `check_dnf.py` for standalone publication.
 - Added MIT licensing metadata.
@@ -28,11 +28,11 @@ All notable changes to this repository will be documented here.
 - Timeout failures return UNKNOWN.
 - Added Nagios-compatible performance data.
 
-## 1.1.1 - 2026-09-24
+## check_dnf.py 1.1.1 - 2026-09-24
 
 - Improved kernel version display by omitting architecture suffixes.
 
-## 1.1.0 - 2026-09-24
+## check_dnf.py 1.1.0 - 2026-09-24
 
 - Added reboot-required detection and kernel status reporting.
 - Increased default timeout to 120 seconds.
