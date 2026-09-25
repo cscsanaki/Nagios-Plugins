@@ -55,8 +55,8 @@ jobs:
 
       - name: Check LibreNMS plugin CLI
         run: |
-          plugins/check_librenms_validate --version
-          plugins/check_librenms_validate --help
+          bash plugins/check_librenms_validate --version
+          bash plugins/check_librenms_validate --help
 
       - name: Run LibreNMS plugin tests
         run: |
