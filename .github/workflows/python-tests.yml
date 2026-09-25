@@ -49,6 +49,19 @@ jobs:
         run: |
           python plugins/check_dnf.py --help
 
+      - name: Check LibreNMS plugin shell syntax
+        run: |
+          bash -n plugins/check_librenms_validate
+
+      - name: Check LibreNMS plugin CLI
+        run: |
+          plugins/check_librenms_validate --version
+          plugins/check_librenms_validate --help
+
+      - name: Run LibreNMS plugin tests
+        run: |
+          bash tests/test_check_librenms_validate.sh
+
       - name: Run unit tests
         run: |
           python -m unittest discover -s tests -v
