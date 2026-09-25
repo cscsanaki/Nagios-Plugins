@@ -1,4 +1,4 @@
-name: Python plugin tests
+name: Plugin tests
 
 on:
   push:
