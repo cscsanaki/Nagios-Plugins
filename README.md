@@ -1,6 +1,6 @@
 # Nagios Plugins
 
-[![Python plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml)
+[![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml)
 [![Latest Release](https://img.shields.io/github/v/release/cscsanaki/Nagios-Plugins)](https://github.com/cscsanaki/Nagios-Plugins/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.11%20%7C%203.13-blue.svg)](https://www.python.org/)
