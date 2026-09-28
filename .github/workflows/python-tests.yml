@@ -35,19 +35,24 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Show Python version
-        run: python --version
+        run: |
+          python --version
 
       - name: Compile Python plugins
         run: |
           python -m compileall -q plugins/
 
-      - name: Check plugin version
+      - name: Check check_dnf.py version
         run: |
           python plugins/check_dnf.py --version
 
-      - name: Check plugin help
+      - name: Check check_dnf.py help
         run: |
           python plugins/check_dnf.py --help
+
+      - name: Check check_dnf.py unit tests
+        run: |
+          python -m unittest discover -s tests -p 'test_check_dnf.py' -v
 
       - name: Check LibreNMS plugin shell syntax
         run: |
@@ -62,21 +67,30 @@ jobs:
         run: |
           bash tests/test_check_librenms_validate.sh
 
-      - name: Run unit tests
+      - name: Check HPE plugin syntax
         run: |
-          python -m unittest discover -s tests -v
+          python -m py_compile plugins/check_hpe_hardware.py
 
-      - name: Check for legacy YUM references
+      - name: Check HPE plugin CLI
         run: |
-          if grep -RniE '\b[Yy][Uu][Mm]\b|check_yum' \
-              plugins/ docs/ README.md; then
-            echo "Legacy YUM reference found"
-            exit 1
-          fi
+          python plugins/check_hpe_hardware.py --version
+          python plugins/check_hpe_hardware.py --help
+
+      - name: Run HPE plugin tests
+        run: |
+          python -m unittest tests/test_check_hpe_hardware.py -v
 
       - name: Check for committed Python bytecode
         run: |
           if git ls-files | grep -E '\.(pyc|pyo)$'; then
             echo "Committed Python bytecode file found in repository"
+            exit 1
+          fi
+
+      - name: Check for legacy YUM references
+        run: |
+          if grep -RniE '\b[Yy][Uu][Mm]\b|check_yum' \
+              plugins/ docs/ README.md CHANGELOG.md; then
+            echo "Legacy YUM reference found"
             exit 1
           fi
