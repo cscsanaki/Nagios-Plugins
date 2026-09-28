@@ -82,7 +82,8 @@ Features:
 - Preserves the worst hardware health state found
 - Reports model, serial number, ROM/BIOS, and iLO firmware
 - Adds recent IML entries to WARNING and CRITICAL output
-- Handles iLOrest, CHIF, and timeout failures as UNKNOWN
+- Handles iLOrest, CHIF, login, execution, and timeout failures as UNKNOWN
+- Supports configurable iLOrest command timeout
 - Supports NRPE with a narrowly scoped sudoers rule
 - Includes automated mock-based unit tests
 
@@ -126,6 +127,7 @@ curl -L -o check_librenms_validate \
 
 chmod +x check_librenms_validate
 ```
+
 ### Download check_hpe_hardware.py
 
 Current version from the `main` branch:
@@ -186,7 +188,8 @@ sudo install -o root -g root -m 0755 \
   /usr/lib64/nagios/plugins/check_hpe_hardware.py
 ```
 
-Test:
+Because iLOrest requires access to the local CHIF interface on the tested
+system, test the plugin with the required privileges:
 
 ```bash
 sudo /usr/lib64/nagios/plugins/check_hpe_hardware.py
@@ -275,7 +278,7 @@ for the complete HPE iLOrest, CHIF, sudoers, and NRPE configuration.
 
 ## Nagios exit codes
 
-Both plugins use the standard Nagios plugin exit codes:
+All plugins use the standard Nagios plugin exit codes:
 
 | Code | State | Meaning |
 | ---: | --- | --- |
@@ -306,6 +309,15 @@ The LibreNMS plugin tests do not require a LibreNMS installation:
 bash tests/test_check_librenms_validate.sh
 ```
 
+The HPE plugin includes hardware-independent mock-based unit tests:
+
+```bash
+python -m unittest tests/test_check_hpe_hardware.py -v
+```
+
+> The HPE tests are included in the repository but will be added to the
+> GitHub Actions workflow in the next step.
+
 ## Requirements
 
 ### check_dnf.py
@@ -330,10 +342,17 @@ bash tests/test_check_librenms_validate.sh
 - Local access to the HPE iLO Channel Interface (CHIF)
 - Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
 
+Tested iLOrest RPM:
+
+```text
+ilorest-7.3.0.0-7.x86_64
+```
+
 ## Documentation
 
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
+- [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
 - [Changelog](CHANGELOG.md)
 
 ## License
