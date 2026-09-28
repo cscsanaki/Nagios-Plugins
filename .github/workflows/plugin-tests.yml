@@ -94,7 +94,21 @@ jobs:
 
       - name: Run ssacli plugin tests
         run: |
-          bash tests/test_check_ssacli_disks.sh      
+          bash tests/test_check_ssacli_disks.sh  
+
+      - name: Check HPE RAID plugin syntax
+        run: |
+          python -m py_compile plugins/check_hpe_raid.py
+          python -m py_compile tests/test_check_hpe_raid.py
+
+      - name: Check HPE RAID plugin CLI
+        run: |
+          python plugins/check_hpe_raid.py --version
+          python plugins/check_hpe_raid.py --help
+
+      - name: Run HPE RAID plugin tests
+        run: |
+          python -m unittest tests/test_check_hpe_raid.py -v          
 
       - name: Check for committed Python bytecode
         run: |
