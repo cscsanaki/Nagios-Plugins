@@ -80,6 +80,20 @@ jobs:
         run: |
           python -m unittest tests/test_check_hpe_hardware.py -v
 
+      - name: Check ssacli plugin shell syntax
+        run: |
+          bash -n plugins/check_ssacli_disks.sh
+          bash -n tests/test_check_ssacli_disks.sh
+
+      - name: Check ssacli plugin CLI
+        run: |
+          bash plugins/check_ssacli_disks.sh --version
+          bash plugins/check_ssacli_disks.sh --help
+
+      - name: Run ssacli plugin tests
+        run: |
+          bash tests/test_check_ssacli_disks.sh      
+
       - name: Check for committed Python bytecode
         run: |
           if git ls-files | grep -E '\.(pyc|pyo)$'; then
