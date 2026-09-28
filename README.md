@@ -317,9 +317,18 @@ The HPE plugin includes 15 hardware-independent unit tests:
 python -m unittest tests/test_check_hpe_hardware.py -v
 ```
 
-The HPE tests cover system information parsing, status handling, severity
-priority, iLOrest failures, command timeouts, IML parsing, and ANSI escape
-sequence handling.
+The HPE tests cover:
+
+- system information parsing
+- OK, WARNING, CRITICAL, and UNKNOWN states
+- worst-severity preservation
+- iLOrest login failure
+- systeminfo failure
+- empty systeminfo output
+- command timeout
+- non-zero iLOrest return codes
+- IML parsing
+- ANSI escape sequence handling
 
 > The HPE tests are included in the repository and will be added to the
 > GitHub Actions workflow in the next step.
