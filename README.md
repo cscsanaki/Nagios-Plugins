@@ -12,7 +12,7 @@ A collection of Nagios/Icinga monitoring plugins for Linux systems.
 | --- | ---: | --- |
 | `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/v1.2.0) |
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
-| `check_hpe_hardware.py` | 1.0.4 | Release pending |
+| `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
 
 Each plugin is versioned independently. See the
 [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
@@ -164,19 +164,13 @@ chmod +x check_librenms_validate
 
 ### Download check_hpe_hardware.py
 
-Current 1.0.4 version from the `main` branch:
+Latest released version:
 
 ```bash
 curl -L -o check_hpe_hardware.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_hpe_hardware.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py
 
 chmod +x check_hpe_hardware.py
-```
-
-After the 1.0.4 release is published, the versioned release URL will be:
-
-```text
-https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py
 ```
 
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
