@@ -2,6 +2,28 @@
 
 All notable changes to this repository will be documented here.
 
+## check_hpe_hardware.py 1.0.4 - 2026-09-28
+
+- Added support for HPE ProLiant DL380 Gen11 and iLO 6.
+- Added tested support for Debian 12 (Bookworm).
+- Added automatic iLOrest executable discovery.
+- Added support for `/opt/ilorest/bin/ilorest` installations.
+- Retained support for `/usr/sbin/ilorest`, `/usr/bin/ilorest`, `/usr/local/bin/ilorest`, and PATH-based discovery.
+- Added explicit custom iLOrest path support through `--ilorest`.
+- Fixed server model parsing so processor `Model:` fields cannot overwrite the HPE server model.
+- Fixed ROM parsing so `Redundant System ROM` cannot overwrite the active BIOS/System ROM.
+- Added iLO 6 firmware parsing while retaining iLO 5 support.
+- Increased the default iLOrest command timeout from 15 to 60 seconds for slower local CHIF operations.
+- Added Gen10 and Gen11 parser regression tests.
+- Added iLO 5 and iLO 6 parsing tests.
+- Added active and redundant ROM regression tests.
+- Added iLOrest executable auto-discovery tests.
+- Added validation of the 60-second default timeout.
+- Validated the plugin on HPE ProLiant DL380 Gen10 with iLO 5.
+- Validated the plugin on two HPE ProLiant DL380 Gen11 servers with iLO 6.
+- Validated Debian 12 local CHIF access with iLOrest 7.3.0.0.
+- Validated Debian 12 NRPE and end-to-end Nagios monitoring.
+
 ## check_hpe_hardware.py 1.0.0 - 2026-09-28
 
 - Added HPE server hardware monitoring through HPE iLOrest.
