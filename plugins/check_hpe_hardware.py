@@ -21,9 +21,14 @@ import shutil
 import subprocess
 import sys
 
-VERSION = "1.0.0"
-DEFAULT_ILOREST = "/usr/sbin/ilorest"
-DEFAULT_TIMEOUT = 15
+VERSION = "1.0.4"
+DEFAULT_ILOREST_CANDIDATES = (
+    "/opt/ilorest/bin/ilorest",
+    "/usr/sbin/ilorest",
+    "/usr/bin/ilorest",
+    "/usr/local/bin/ilorest",
+)
+DEFAULT_TIMEOUT = 60
 DEFAULT_DMI_TIMEOUT = 5
 
 OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
@@ -133,31 +138,30 @@ def get_local_bios_fallback(timeout, verbose=0):
 
 def parse_system_info(output):
     """Parse system identity, firmware versions, and the worst health state."""
-    data = {
-        "model": "HPE Server",
-        "serial": "Unknown S/N",
-        "bios": "",
-        "ilo": "Unknown iLO",
-        "severity": SEVERITY_OK,
-    }
+    data = {"model": "HPE Server", "serial": "Unknown S/N", "bios": "",
+            "ilo": "Unknown iLO", "severity": SEVERITY_OK}
+    server_model_found = False
 
     for raw_line in output.splitlines():
         line = raw_line.strip()
         if not line:
             continue
 
-        if "Model:" in line and "Processor" not in line:
+        if line.startswith("Model:") and not server_model_found:
             candidate = line.split(":", 1)[1].strip()
-            if candidate and "Intel" not in candidate and "Xeon" not in candidate:
+            if candidate:
                 data["model"] = candidate
-        elif "Serial Number:" in line:
+                server_model_found = True
+        elif line.startswith("Serial Number:"):
             data["serial"] = line.split(":", 1)[1].strip() or data["serial"]
-        elif "Bios Version:" in line or "System ROM :" in line:
+        elif line.startswith("Bios Version:"):
             data["bios"] = line.split(":", 1)[1].strip()
-        elif "iLO " in line and ":" in line:
+        elif line.startswith("System ROM :") and not data["bios"]:
+            data["bios"] = line.split(":", 1)[1].strip()
+        elif re.match(r"^iLO\s+\d+\s*:", line):
             left, right = line.split(":", 1)
             data["ilo"] = f"{left.strip()}: {right.strip()}"
-        elif "Health:" in line or "Status:" in line:
+        elif line.startswith("Health:") or line.startswith("Status:"):
             value = line.split(":", 1)[1].strip().upper()
             if any(x in value for x in ("CRITICAL", "FAILED", "FAIL")):
                 data["severity"] = max(data["severity"], SEVERITY_CRITICAL)
@@ -167,7 +171,6 @@ def parse_system_info(output):
     for key in ("model", "serial", "bios", "ilo"):
         data[key] = normalize(data[key])
     return data
-
 
 def get_latest_iml_logs(session, count=3):
     """Return the last relevant IML entries when a hardware issue is detected."""
@@ -185,13 +188,28 @@ def get_latest_iml_logs(session, count=3):
     return " | IML Logs: " + " -> ".join(lines[-count:]) if lines else ""
 
 
-def resolve_ilorest(path):
-    candidate = path if os.path.isabs(path) else shutil.which(path)
-    if not candidate or not os.path.isfile(candidate):
-        raise CommandError(f"iLOrest executable not found: {path}")
-    if not os.access(candidate, os.X_OK):
-        raise CommandError(f"iLOrest executable is not executable: {candidate}")
-    return candidate
+def resolve_ilorest(path=None):
+    """Resolve iLOrest from an explicit path or common installation locations."""
+    if path:
+        candidate = path if os.path.isabs(path) else shutil.which(path)
+        if not candidate or not os.path.isfile(candidate):
+            raise CommandError(f"iLOrest executable not found: {path}")
+        if not os.access(candidate, os.X_OK):
+            raise CommandError(f"iLOrest executable is not executable: {candidate}")
+        return candidate
+
+    for candidate in DEFAULT_ILOREST_CANDIDATES:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+
+    candidate = shutil.which("ilorest")
+    if candidate and os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+        return candidate
+
+    searched = ", ".join(DEFAULT_ILOREST_CANDIDATES)
+    raise CommandError(
+        f"iLOrest executable not found (searched: {searched}, PATH)"
+    )
 
 
 def build_parser():
@@ -203,8 +221,9 @@ def build_parser():
         help=f"iLOrest command timeout in seconds (default: {DEFAULT_TIMEOUT})"
     )
     parser.add_argument(
-        "--ilorest", default=DEFAULT_ILOREST,
-        help=f"path to iLOrest (default: {DEFAULT_ILOREST})"
+        "--ilorest",
+        default=None,
+        help="path to iLOrest (default: auto-detect)"
     )
     parser.add_argument(
         "-v", "--verbose", action="count", default=0,
