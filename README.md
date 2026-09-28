@@ -1,6 +1,6 @@
 # Nagios Plugins
 
-[![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml)
+[![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.11%20%7C%203.13-blue.svg)](https://www.python.org/)
 
@@ -13,6 +13,7 @@ A collection of Nagios/Icinga monitoring plugins for Linux systems.
 | `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/v1.2.0) |
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
+| `check_ssacli_disks.sh` | 1.0.0 | Release pending |
 
 Each plugin is versioned independently. See the
 [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
@@ -131,6 +132,66 @@ Full documentation:
 
 [docs/check_hpe_hardware.md](docs/check_hpe_hardware.md)
 
+### check_ssacli_disks.sh
+
+Bash Nagios/Icinga plugin for monitoring HPE Smart Array physical drive health
+through HPE Smart Storage Administrator CLI (`ssacli`).
+
+Current version: **1.0.0**
+
+**The HPE `ssacli` package is required on the monitored server.**
+
+The plugin has been validated on real HPE Smart Array hardware with eight
+physical drives and through an end-to-end NRPE/Nagios monitoring path.
+
+Features:
+
+- Discovers HPE Smart Array controllers automatically
+- Supports multiple Smart Array controllers
+- Queries all physical drives through `ssacli`
+- Reports OK when all discovered physical drives are healthy
+- Reports CRITICAL when one or more physical drives are not `Status: OK`
+- Reports UNKNOWN when `ssacli` is missing or cannot be executed
+- Reports UNKNOWN when controller discovery fails
+- Reports UNKNOWN when no Smart Array controller is found
+- Reports UNKNOWN when a controller cannot be queried
+- Reports UNKNOWN when no physical drives are found
+- Treats a physical drive with no reported status as problematic
+- Reports controller slot and physical drive identifier for failed drives
+- Provides Nagios-compatible performance data
+- Supports a custom `ssacli` executable through `SSACLI_BIN`
+- Includes hardware-independent mock-based tests
+
+Example healthy result:
+
+```text
+SSACLI OK: all 8 physical drive(s) are healthy | drives=8 problems=0
+```
+
+Example problem result:
+
+```text
+SSACLI CRITICAL: 1 problematic drive(s) found: Slot 0, Drive 1I:1:2 (Failed) | drives=8 problems=1
+```
+
+The default `ssacli` executable is:
+
+```text
+/usr/sbin/ssacli
+```
+
+A different executable can be specified with:
+
+```bash
+SSACLI_BIN=/custom/path/ssacli check_ssacli_disks.sh
+```
+
+Full documentation will be available at:
+
+```text
+docs/check_ssacli_disks.md
+```
+
 ## Download
 
 ### Clone the repository
@@ -173,6 +234,23 @@ curl -L -o check_hpe_hardware.py \
 chmod +x check_hpe_hardware.py
 ```
 
+### Download check_ssacli_disks.sh
+
+Current 1.0.0 version from the `main` branch:
+
+```bash
+curl -L -o check_ssacli_disks.sh \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_ssacli_disks.sh
+
+chmod +x check_ssacli_disks.sh
+```
+
+After the 1.0.0 release is published, the versioned release URL will be:
+
+```text
+https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh
+```
+
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 page for plugin-specific release notes and source archives.
 
@@ -210,10 +288,28 @@ sudo install -o root -g root -m 0755 \
   /usr/lib64/nagios/plugins/check_hpe_hardware.py
 ```
 
+#### check_ssacli_disks.sh
+
+The HPE `ssacli` package must be installed before using this plugin.
+
+Verify that the executable is available:
+
+```bash
+/usr/sbin/ssacli version
+```
+
+Install the plugin:
+
+```bash
+sudo install -o root -g root -m 0755 \
+  plugins/check_ssacli_disks.sh \
+  /usr/lib64/nagios/plugins/check_ssacli_disks.sh
+```
+
 Test:
 
 ```bash
-sudo /usr/lib64/nagios/plugins/check_hpe_hardware.py
+sudo /usr/lib64/nagios/plugins/check_ssacli_disks.sh
 ```
 
 ### Debian
@@ -224,7 +320,7 @@ The standard Nagios plugin directory is commonly:
 /usr/lib/nagios/plugins
 ```
 
-Install the HPE plugin:
+Install the HPE hardware plugin:
 
 ```bash
 sudo install -o root -g root -m 0755 \
@@ -368,6 +464,39 @@ sudo -u nagios sudo -n /usr/lib/nagios/plugins/check_hpe_hardware.py
 See [docs/check_hpe_hardware.md](docs/check_hpe_hardware.md#nrpe-integration)
 for the complete HPE iLOrest, CHIF, sudoers, and NRPE configuration.
 
+### check_ssacli_disks.sh
+
+The plugin requires elevated privileges for local `ssacli` access on the tested
+system.
+
+Use a narrowly scoped sudoers rule:
+
+```text
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_ssacli_disks.sh
+```
+
+Example NRPE command:
+
+```text
+command[check_ssacli_disks]=sudo -n /usr/lib64/nagios/plugins/check_ssacli_disks.sh
+```
+
+Local NRPE-account test:
+
+```bash
+sudo -u nrpe sudo -n /usr/lib64/nagios/plugins/check_ssacli_disks.sh
+```
+
+Remote test from the Nagios server:
+
+```bash
+/usr/lib64/nagios/plugins/check_nrpe \
+  -H <hpe-server> \
+  -c check_ssacli_disks
+```
+
+Do not grant unrestricted sudo access to the NRPE account.
+
 ## Nagios exit codes
 
 All plugins use the standard Nagios plugin exit codes:
@@ -384,6 +513,12 @@ All plugins use the standard Nagios plugin exit codes:
 GitHub Actions automatically validates the repository on pushes and pull
 requests.
 
+The workflow is:
+
+```text
+.github/workflows/plugin-tests.yml
+```
+
 Current CI checks include:
 
 - Python syntax validation
@@ -394,6 +529,8 @@ Current CI checks include:
 - `check_librenms_validate` mock-based tests
 - `check_hpe_hardware.py` syntax and CLI checks
 - `check_hpe_hardware.py` hardware-independent regression tests
+- `check_ssacli_disks.sh` shell syntax and CLI checks
+- `check_ssacli_disks.sh` hardware-independent mock-based tests
 - Detection of committed Python bytecode
 - Legacy reference checks
 
@@ -403,36 +540,39 @@ The LibreNMS plugin tests do not require a LibreNMS installation:
 bash tests/test_check_librenms_validate.sh
 ```
 
-The HPE plugin tests do not require HPE hardware:
+The HPE hardware plugin tests do not require HPE hardware:
 
 ```bash
 python -m unittest tests/test_check_hpe_hardware.py -v
 ```
 
-The HPE tests cover:
+The HPE Smart Array disk tests do not require HPE hardware or an installed
+`ssacli` package:
 
-- DL380 Gen10 system information parsing
-- DL380 Gen11 system information parsing
-- iLO 5 parsing
-- iLO 6 parsing
-- server model preservation
-- active versus redundant ROM handling
-- System ROM fallback
-- OK, WARNING, CRITICAL, and UNKNOWN states
-- worst-severity preservation
-- iLOrest login failure
-- systeminfo failure
-- empty systeminfo output
-- command timeout
-- non-zero iLOrest return codes
-- IML parsing
-- ANSI escape sequence handling
-- explicit iLOrest executable selection
-- `/opt/ilorest/bin/ilorest` auto-discovery
-- `/usr/sbin/ilorest` auto-discovery
-- PATH fallback
-- missing iLOrest handling
-- 60-second default timeout validation
+```bash
+bash tests/test_check_ssacli_disks.sh
+```
+
+The `check_ssacli_disks.sh` test suite covers:
+
+- `--version`
+- `--help`
+- unknown CLI options
+- missing `ssacli`
+- controller query failures
+- no Smart Array controller found
+- physical drive query failures
+- no physical drives found
+- healthy physical drives
+- failed physical drives
+- multiple failed physical drives
+- missing physical drive status
+- multiple Smart Array controllers
+- Nagios exit states
+- performance data
+
+The real plugin itself still requires the HPE `ssacli` package on the monitored
+server.
 
 ## Requirements
 
@@ -467,11 +607,37 @@ Tested iLOrest version:
 See [docs/check_hpe_hardware.md](docs/check_hpe_hardware.md) for platform-specific
 iLOrest installation and NRPE configuration.
 
+### check_ssacli_disks.sh
+
+- Bash
+- HPE Smart Array controller
+- **HPE Smart Storage Administrator CLI (`ssacli`)**
+- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+- `sudo` when elevated privileges are required for local `ssacli` access
+
+The `ssacli` package must be installed on the monitored server.
+
+The default executable path is:
+
+```text
+/usr/sbin/ssacli
+```
+
+Verify the installation with:
+
+```bash
+/usr/sbin/ssacli version
+```
+
+A custom executable can be selected through the `SSACLI_BIN` environment
+variable.
+
 ## Documentation
 
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
+- `check_ssacli_disks.sh` documentation — pending
 - [Changelog](CHANGELOG.md)
 - [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 
