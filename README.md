@@ -1,11 +1,22 @@
 # Nagios Plugins
 
 [![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/python-tests.yml)
-[![Latest Release](https://img.shields.io/github/v/release/cscsanaki/Nagios-Plugins)](https://github.com/cscsanaki/Nagios-Plugins/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.11%20%7C%203.13-blue.svg)](https://www.python.org/)
 
 A collection of Nagios/Icinga monitoring plugins for Linux systems.
+
+## Current versions
+
+| Plugin | Version | Release |
+| --- | ---: | --- |
+| `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/v1.2.0) |
+| `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
+| `check_hpe_hardware.py` | 1.0.0 | [check_hpe_hardware.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.0) |
+
+Each plugin is versioned independently. See the
+[Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
+plugin-specific release notes and source archives.
 
 ## Plugins
 
@@ -56,6 +67,7 @@ Features:
 - Detects execution failures and timeouts as UNKNOWN
 - Supports a configurable validation timeout
 - Provides `failures` and `warnings` performance data
+- Supports non-interactive execution of `validate.php` as the `librenms` user
 - Supports NRPE with a narrowly scoped sudoers rule
 - Includes automated mock-based tests
 
@@ -80,12 +92,18 @@ Features:
 - Monitors HPE hardware health through the local iLOrest CLI
 - Reports OK, WARNING, CRITICAL, and UNKNOWN Nagios states
 - Preserves the worst hardware health state found
-- Reports model, serial number, ROM/BIOS, and iLO firmware
-- Adds recent IML entries to WARNING and CRITICAL output
-- Handles iLOrest, CHIF, login, execution, and timeout failures as UNKNOWN
-- Supports configurable iLOrest command timeout
+- Reports server model and serial number
+- Reports ROM/BIOS version
+- Reports iLO firmware version
+- Adds recent Integrated Management Log (IML) entries to WARNING and CRITICAL output
+- Handles iLOrest login and execution failures as UNKNOWN
+- Handles CHIF access failures as UNKNOWN
+- Handles command timeouts as UNKNOWN
+- Supports configurable iLOrest command timeout and executable path
+- Uses sysfs and `dmidecode` as a local BIOS fallback
+- Removes ANSI escape sequences from IML output
 - Supports NRPE with a narrowly scoped sudoers rule
-- Includes automated mock-based unit tests
+- Includes 15 hardware-independent automated unit tests
 
 Example:
 
@@ -119,28 +137,28 @@ chmod +x check_dnf.py
 
 ### Download check_librenms_validate
 
-Current version from the `main` branch:
+Latest released version:
 
 ```bash
 curl -L -o check_librenms_validate \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_librenms_validate
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate
 
 chmod +x check_librenms_validate
 ```
 
 ### Download check_hpe_hardware.py
 
-Current version from the `main` branch:
+Latest released version:
 
 ```bash
 curl -L -o check_hpe_hardware.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_hpe_hardware.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.0/plugins/check_hpe_hardware.py
 
 chmod +x check_hpe_hardware.py
 ```
 
-See the [latest release](https://github.com/cscsanaki/Nagios-Plugins/releases/latest)
-for release notes and source archives.
+See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
+page for plugin-specific release notes and source archives.
 
 ## Installation
 
@@ -298,14 +316,14 @@ Current CI checks include:
 
 - Python syntax validation
 - Python 3.9, 3.11, and 3.13 compatibility
-- `check_dnf.py` unit tests
+- `check_dnf.py` CLI and unit tests
 - Nagios status logic tests
 - `check_librenms_validate` shell syntax and CLI checks
 - `check_librenms_validate` mock-based tests
-- Detection of committed Python bytecode
-- Legacy reference checks
 - `check_hpe_hardware.py` syntax and CLI checks
 - `check_hpe_hardware.py` hardware-independent unit tests
+- Detection of committed Python bytecode
+- Legacy reference checks
 
 The LibreNMS plugin tests do not require a LibreNMS installation:
 
@@ -368,6 +386,7 @@ ilorest-7.3.0.0-7.x86_64
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
 - [Changelog](CHANGELOG.md)
+- [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 
 ## License
 
