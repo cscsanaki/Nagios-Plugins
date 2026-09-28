@@ -82,6 +82,8 @@ jobs:
 
       - name: Check ssacli plugin shell syntax
         run: |
+          chmod +x plugins/check_ssacli_disks.sh
+          chmod +x tests/test_check_ssacli_disks.sh
           bash -n plugins/check_ssacli_disks.sh
           bash -n tests/test_check_ssacli_disks.sh
 
