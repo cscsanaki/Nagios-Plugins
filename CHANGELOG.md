@@ -2,6 +2,45 @@
 
 All notable changes to this repository will be documented here.
 
+## check_hpe_raid.py 1.0.0 - 2026-09-28
+
+Initial public release of `check_hpe_raid.py`.
+
+- Added HPE Smart Array RAID health monitoring through HPE Smart Storage Administrator CLI (`ssacli`).
+- Added automatic HPE Smart Array controller discovery.
+- Added support for multiple Smart Array controllers.
+- Added controller health monitoring.
+- Added array discovery and health monitoring.
+- Added logical drive discovery and health monitoring.
+- Added OK state for healthy logical drives.
+- Added support for `Disabled` logical drive state as OK.
+- Added WARNING state for `Rebuild`, `Rebuilding`, `Recover`, and `Recovering` logical drive states.
+- Added CRITICAL state for failed or otherwise unhealthy logical drives.
+- Added CRITICAL state for non-OK Smart Array controllers.
+- Added CRITICAL state for non-OK arrays.
+- Added UNKNOWN state when controller status is unavailable.
+- Added UNKNOWN state when no HPE Smart Array controller is found.
+- Added UNKNOWN state when no arrays are found for a discovered controller.
+- Added UNKNOWN handling for missing or non-executable `ssacli`.
+- Added UNKNOWN handling for `ssacli` command failures and timeouts.
+- Added worst-severity preservation across controllers, arrays, and logical drives.
+- Added automatic `ssacli` executable discovery through PATH and common installation locations.
+- Added explicit custom `ssacli` executable support through `--ssacli`.
+- Added configurable `ssacli` command timeout with a 30-second default.
+- Added `--version` and `--help` command-line options.
+- Added Nagios-compatible `controllers`, `arrays`, `logical_drives`, and `problems` performance data.
+- Added NRPE support with a narrowly scoped sudoers rule.
+- Added 33 hardware-independent automated unit tests.
+- Added controller, array, logical drive, command failure, timeout, multiple-controller, and worst-severity regression tests.
+- Added Python syntax, CLI, and unit-test validation to GitHub Actions.
+- Added CI validation with Python 3.9, 3.11, and 3.13.
+- Added dedicated `check_hpe_raid.py` documentation.
+- Documented HPE Smart Storage Administrator CLI (`ssacli`) as a mandatory runtime dependency.
+- Validated on real HPE Smart Array P408i-a SR Gen10 hardware.
+- Validated a configuration containing two arrays and two logical drives.
+- Validated through the NRPE, sudo, plugin, and `ssacli` execution path.
+- Validated through end-to-end Nagios monitoring.
+
 ## check_ssacli_disks.sh 1.0.0 - 2026-09-28
 
 Initial public release of `check_ssacli_disks.sh`.
