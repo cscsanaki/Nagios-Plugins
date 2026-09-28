@@ -304,6 +304,8 @@ Current CI checks include:
 - `check_librenms_validate` mock-based tests
 - Detection of committed Python bytecode
 - Legacy reference checks
+- `check_hpe_hardware.py` syntax and CLI checks
+- `check_hpe_hardware.py` hardware-independent unit tests
 
 The LibreNMS plugin tests do not require a LibreNMS installation:
 
@@ -330,8 +332,7 @@ The HPE tests cover:
 - IML parsing
 - ANSI escape sequence handling
 
-> The HPE tests are included in the repository and will be added to the
-> GitHub Actions workflow in the next step.
+- ANSI escape sequence handling
 
 ## Requirements
 
