@@ -323,16 +323,15 @@ curl -L -o check_librenms_validate \
 chmod +x check_librenms_validate
 ```
 
-````markdown
-### Download check_hpe_raid.py
+### Download check_hpe_hardware.py
 
 Latest released version:
 
 ```bash
-curl -L -o check_hpe_raid.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py
+curl -L -o check_hpe_hardware.py \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py
 
-chmod +x check_hpe_raid.py
+chmod +x check_hpe_hardware.py
 ```
 
 ### Download check_ssacli_disks.sh
@@ -348,19 +347,13 @@ chmod +x check_ssacli_disks.sh
 
 ### Download check_hpe_raid.py
 
-Until the 1.0.0 release is published, use the current `main` version:
+Latest released version:
 
 ```bash
 curl -L -o check_hpe_raid.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_hpe_raid.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py
 
 chmod +x check_hpe_raid.py
-```
-
-After the 1.0.0 release is published, the versioned URL will be:
-
-```text
-https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py
 ```
 
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
