@@ -188,8 +188,10 @@ sudo install -o root -g root -m 0755 \
   /usr/lib64/nagios/plugins/check_hpe_hardware.py
 ```
 
-Because iLOrest requires access to the local CHIF interface on the tested
-system, test the plugin with the required privileges:
+On the tested HPE system, iLOrest requires elevated privileges to access the
+local CHIF interface.
+
+Test:
 
 ```bash
 sudo /usr/lib64/nagios/plugins/check_hpe_hardware.py
@@ -309,13 +311,17 @@ The LibreNMS plugin tests do not require a LibreNMS installation:
 bash tests/test_check_librenms_validate.sh
 ```
 
-The HPE plugin includes hardware-independent mock-based unit tests:
+The HPE plugin includes 15 hardware-independent unit tests:
 
 ```bash
 python -m unittest tests/test_check_hpe_hardware.py -v
 ```
 
-> The HPE tests are included in the repository but will be added to the
+The HPE tests cover system information parsing, status handling, severity
+priority, iLOrest failures, command timeouts, IML parsing, and ANSI escape
+sequence handling.
+
+> The HPE tests are included in the repository and will be added to the
 > GitHub Actions workflow in the next step.
 
 ## Requirements
