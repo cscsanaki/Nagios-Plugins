@@ -188,8 +188,10 @@ SSACLI_BIN=/custom/path/ssacli check_ssacli_disks.sh
 
 Full documentation will be available at:
 
-```text
-docs/check_ssacli_disks.md
+```markdown
+Full documentation:
+
+[docs/check_ssacli_disks.md](docs/check_ssacli_disks.md)
 ```
 
 ## Download
@@ -637,7 +639,7 @@ variable.
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
-- `check_ssacli_disks.sh` documentation — pending
+- [check_ssacli_disks.sh documentation](docs/check_ssacli_disks.md)
 - [Changelog](CHANGELOG.md)
 - [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 
