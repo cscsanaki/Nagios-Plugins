@@ -69,6 +69,33 @@ Full documentation:
 
 [docs/check_librenms_validate.md](docs/check_librenms_validate.md)
 
+### check_hpe_hardware.py
+
+Nagios/Icinga plugin for monitoring HPE server hardware through HPE iLOrest.
+
+Currently tested with HPE ProLiant DL380 Gen10, iLO 5, and iLOrest 7.3.0.0-7.
+
+Features:
+
+- Monitors HPE hardware health through the local iLOrest CLI
+- Reports OK, WARNING, CRITICAL, and UNKNOWN Nagios states
+- Preserves the worst hardware health state found
+- Reports model, serial number, ROM/BIOS, and iLO firmware
+- Adds recent IML entries to WARNING and CRITICAL output
+- Handles iLOrest, CHIF, and timeout failures as UNKNOWN
+- Supports NRPE with a narrowly scoped sudoers rule
+- Includes automated mock-based unit tests
+
+Example:
+
+```text
+HPE OK: hardware is healthy (Model: HPE ProLiant DL380 Gen10, S/N: CZ282701B5, ROM: U30 v3.68 (07/23/2026), iLO: iLO 5: 3.21 Jul 30 2026)
+```
+
+Full documentation:
+
+[docs/check_hpe_hardware.md](docs/check_hpe_hardware.md)
+
 ## Download
 
 ### Clone the repository
@@ -98,6 +125,16 @@ curl -L -o check_librenms_validate \
   https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_librenms_validate
 
 chmod +x check_librenms_validate
+```
+### Download check_hpe_hardware.py
+
+Current version from the `main` branch:
+
+```bash
+curl -L -o check_hpe_hardware.py \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_hpe_hardware.py
+
+chmod +x check_hpe_hardware.py
 ```
 
 See the [latest release](https://github.com/cscsanaki/Nagios-Plugins/releases/latest)
@@ -141,9 +178,24 @@ Test:
 echo $?
 ```
 
+### check_hpe_hardware.py
+
+```bash
+sudo install -o root -g root -m 0755 \
+  plugins/check_hpe_hardware.py \
+  /usr/lib64/nagios/plugins/check_hpe_hardware.py
+```
+
+Test:
+
+```bash
+sudo /usr/lib64/nagios/plugins/check_hpe_hardware.py
+echo $?
+```
+
 ## NRPE integration
 
-Both plugins can be executed remotely through NRPE.
+All plugins can be executed remotely through NRPE.
 
 ### check_dnf.py
 
@@ -193,6 +245,34 @@ Remote test:
 See [docs/check_librenms_validate.md](docs/check_librenms_validate.md#nrpe-integration)
 for the complete sudoers and NRPE configuration.
 
+### check_hpe_hardware.py
+
+On the tested HPE system, iLOrest requires elevated privileges to access the
+local CHIF interface.
+
+Use a narrowly scoped sudoers rule:
+
+```text
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_hardware.py
+```
+
+NRPE command:
+
+```text
+command[check_hpe_hardware]=sudo -n /usr/lib64/nagios/plugins/check_hpe_hardware.py
+```
+
+Remote test:
+
+```bash
+/usr/lib64/nagios/plugins/check_nrpe \
+  -H <hpe-server> \
+  -c check_hpe_hardware
+```
+
+See [docs/check_hpe_hardware.md](docs/check_hpe_hardware.md#nrpe-integration)
+for the complete HPE iLOrest, CHIF, sudoers, and NRPE configuration.
+
 ## Nagios exit codes
 
 Both plugins use the standard Nagios plugin exit codes:
@@ -241,6 +321,13 @@ bash tests/test_check_librenms_validate.sh
 - LibreNMS
 - `sudo`
 - GNU `timeout`
+- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+
+### check_hpe_hardware.py
+
+- Python 3
+- HPE iLOrest
+- Local access to the HPE iLO Channel Interface (CHIF)
 - Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
 
 ## Documentation
