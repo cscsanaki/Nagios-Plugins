@@ -2,6 +2,31 @@
 
 All notable changes to this repository will be documented here.
 
+## check_ssacli_disks.sh 1.0.0 - 2026-09-28
+
+Initial public release of `check_ssacli_disks.sh`.
+
+- Added HPE Smart Array physical drive monitoring through HPE Smart Storage Administrator CLI (`ssacli`).
+- Added automatic discovery of HPE Smart Array controllers.
+- Added support for multiple Smart Array controllers.
+- Added monitoring of all discovered physical drives.
+- Added CRITICAL state when one or more physical drives do not report `Status: OK`.
+- Added UNKNOWN state when `ssacli` is missing or not executable.
+- Added UNKNOWN state for controller discovery failures.
+- Added UNKNOWN state when no Smart Array controller is found.
+- Added UNKNOWN state for physical drive query failures.
+- Added UNKNOWN state when no physical drives are found.
+- Added detection of physical drives with missing status information.
+- Added controller slot and physical drive identifiers to problem output.
+- Added Nagios-compatible `drives` and `problems` performance data.
+- Added configurable `ssacli` executable path through the `SSACLI_BIN` environment variable.
+- Added `--version` and `--help` command-line options.
+- Added NRPE support with a narrowly scoped sudoers rule.
+- Added 13 hardware-independent mock-based tests.
+- Added shell syntax and CLI validation to GitHub Actions.
+- Validated on real HPE Smart Array hardware with eight physical drives.
+- Validated through NRPE and end-to-end Nagios monitoring.
+
 ## check_hpe_hardware.py 1.0.4 - 2026-09-28
 
 - Added support for HPE ProLiant DL380 Gen11 and iLO 6.
