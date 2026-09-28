@@ -15,7 +15,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
 | `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
-| `check_hpe_raid.py` | 1.0.0 | Release pending |
+| `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
 
 Each plugin is versioned independently. See the
 [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
@@ -323,15 +323,16 @@ curl -L -o check_librenms_validate \
 chmod +x check_librenms_validate
 ```
 
-### Download check_hpe_hardware.py
+````markdown
+### Download check_hpe_raid.py
 
 Latest released version:
 
 ```bash
-curl -L -o check_hpe_hardware.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py
+curl -L -o check_hpe_raid.py \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py
 
-chmod +x check_hpe_hardware.py
+chmod +x check_hpe_raid.py
 ```
 
 ### Download check_ssacli_disks.sh
