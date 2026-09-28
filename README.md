@@ -3,8 +3,9 @@
 [![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.11%20%7C%203.13-blue.svg)](https://www.python.org/)
+[![Bash](https://img.shields.io/badge/Bash-Shell_Scripts-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
 
-A collection of Nagios/Icinga monitoring plugins for Linux systems.
+A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux systems.
 
 ## Current versions
 
@@ -13,7 +14,7 @@ A collection of Nagios/Icinga monitoring plugins for Linux systems.
 | `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/v1.2.0) |
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
-| `check_ssacli_disks.sh` | 1.0.0 | Release pending |
+| `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
 
 Each plugin is versioned independently. See the
 [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
@@ -186,11 +187,9 @@ A different executable can be specified with:
 SSACLI_BIN=/custom/path/ssacli check_ssacli_disks.sh
 ```
 
-Full documentation will be available at:
+Full documentation:
 
-```text
-docs/check_ssacli_disks.md
-```
+[docs/check_ssacli_disks.md](docs/check_ssacli_disks.md)
 
 ## Download
 
@@ -236,19 +235,13 @@ chmod +x check_hpe_hardware.py
 
 ### Download check_ssacli_disks.sh
 
-Current 1.0.0 version from the `main` branch:
+Latest released version:
 
 ```bash
 curl -L -o check_ssacli_disks.sh \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_ssacli_disks.sh
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh
 
 chmod +x check_ssacli_disks.sh
-```
-
-After the 1.0.0 release is published, the versioned release URL will be:
-
-```text
-https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh
 ```
 
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
@@ -497,6 +490,10 @@ Remote test from the Nagios server:
 
 Do not grant unrestricted sudo access to the NRPE account.
 
+See [docs/check_ssacli_disks.md](docs/check_ssacli_disks.md) for detailed
+installation, `ssacli` requirements, usage, error handling, sudoers, NRPE, and
+testing information.
+
 ## Nagios exit codes
 
 All plugins use the standard Nagios plugin exit codes:
@@ -615,7 +612,7 @@ iLOrest installation and NRPE configuration.
 - Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
 - `sudo` when elevated privileges are required for local `ssacli` access
 
-The `ssacli` package must be installed on the monitored server.
+**The `ssacli` package must be installed on the monitored server.**
 
 The default executable path is:
 
@@ -632,12 +629,15 @@ Verify the installation with:
 A custom executable can be selected through the `SSACLI_BIN` environment
 variable.
 
+See [docs/check_ssacli_disks.md](docs/check_ssacli_disks.md) for complete
+installation and configuration information.
+
 ## Documentation
 
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
-- `check_ssacli_disks.sh` documentation — pending
+- [check_ssacli_disks.sh documentation](docs/check_ssacli_disks.md)
 - [Changelog](CHANGELOG.md)
 - [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 
