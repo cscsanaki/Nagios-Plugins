@@ -332,8 +332,6 @@ The HPE tests cover:
 - IML parsing
 - ANSI escape sequence handling
 
-- ANSI escape sequence handling
-
 ## Requirements
 
 ### check_dnf.py
