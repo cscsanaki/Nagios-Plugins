@@ -5,7 +5,7 @@
 # Copyright (c) 2026 Csanaki Csaba <cscsanaki@gmail.com>
 # SPDX-License-Identifier: MIT
 #
-# Requires HPE iLOrest (tested with ilorest 7.3.0.0-7).
+# Requires HPE iLOrest (tested with ilorest 7.3.0.0).
 #
 # Nagios exit codes:
 #   0 OK
