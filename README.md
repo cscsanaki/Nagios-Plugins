@@ -855,3 +855,5 @@ and configuration information.
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+<!-- Branch protection workflow verified. -->
