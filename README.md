@@ -16,6 +16,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
 | `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
 | `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
+| `check_systemd_health.py` | 1.0.2 | Pending first release |
 
 Each plugin is versioned independently. See the
 [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
@@ -263,6 +264,53 @@ Full documentation:
 
 [docs/check_hpe_raid.md](docs/check_hpe_raid.md)
 
+### check_systemd_health.py
+
+Python 3 Nagios/Icinga plugin for monitoring systemd unit health and excessive
+service restarts.
+
+Current version: **1.0.2**
+
+Tested on Rocky Linux 9 with systemd.
+
+Features:
+
+- Monitors failed systemd units
+- Supports arbitrary unit states with `--state`
+- Supports unit type filtering with `--type`
+- Supports `--include` and `--exclude` filters
+- Supports shell-style wildcard patterns
+- Supports configurable WARNING and CRITICAL problem thresholds
+- Monitors automatic service restart events through the systemd journal
+- Detects restart events even when the affected service is no longer loaded
+- Uses a single journal query for efficient restart monitoring
+- Supports configurable restart WARNING and CRITICAL thresholds
+- Supports configurable restart monitoring windows with `--since`
+- Reports command failures and timeouts as UNKNOWN
+- Reports invalid command-line arguments as UNKNOWN
+- Provides Nagios-compatible performance data
+- Supports verbose (`-v`) and debug (`-vv`) output
+- Includes 46 automated tests
+- Tested under Python 3.9, 3.11, and 3.13 in CI
+
+Healthy example:
+
+```text
+SYSTEMD OK: system running; 0 matching problem units | problems=0 excluded=0
+```
+
+Failed unit example:
+
+```text
+SYSTEMD CRITICAL: system state degraded; 1 matching unit - backup.service | problems=1 excluded=0
+```
+
+Restart example:
+
+```text
+SYSTEMD CRITICAL: system state degraded; 0 matching problem units; nginx.service restarted 7 times | problems=0 excluded=0 restarts=7
+```
+
 ## HPE Smart Array monitoring
 
 The repository contains two complementary HPE Smart Array plugins.
@@ -356,6 +404,18 @@ curl -L -o check_hpe_raid.py \
 chmod +x check_hpe_raid.py
 ```
 
+### Download check_systemd_health.py
+
+The plugin is currently available from the repository and will receive a
+plugin-specific release tag with its first release.
+
+```bash
+curl -L -o check_systemd_health.py \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_systemd_health.py
+
+chmod +x check_systemd_health.py
+```
+
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 page for plugin-specific release notes and source archives.
 
@@ -439,6 +499,38 @@ Test against the Smart Array:
 
 ```bash
 sudo /usr/lib64/nagios/plugins/check_hpe_raid.py
+```
+
+#### check_systemd_health.py
+
+Install:
+
+```bash
+sudo install -o root -g root -m 0755 \
+  plugins/check_systemd_health.py \
+  /usr/lib64/nagios/plugins/check_systemd_health.py
+```
+
+Verify:
+
+```bash
+/usr/lib64/nagios/plugins/check_systemd_health.py --version
+```
+
+Basic test:
+
+```bash
+/usr/lib64/nagios/plugins/check_systemd_health.py
+```
+
+Restart monitoring example:
+
+```bash
+/usr/lib64/nagios/plugins/check_systemd_health.py \
+  --check-restarts \
+  --since 30m \
+  --restart-warning 3 \
+  --restart-critical 5
 ```
 
 ### Debian
@@ -651,6 +743,24 @@ Remote test:
 
 Do not grant unrestricted sudo access to the NRPE account.
 
+### check_systemd_health.py
+
+Basic NRPE command:
+
+```text
+command[check_systemd_health]=/usr/lib64/nagios/plugins/check_systemd_health.py
+```
+
+Example with restart monitoring:
+
+```text
+command[check_systemd_health]=/usr/lib64/nagios/plugins/check_systemd_health.py --check-restarts --since 30m --restart-warning 3 --restart-critical 5
+```
+
+Restart monitoring requires the NRPE account to have sufficient access to the
+systemd journal. Verify journal access using the same account that runs the
+plugin.
+
 ## Nagios exit codes
 
 All plugins use the standard Nagios plugin exit codes:
@@ -694,8 +804,54 @@ Current CI checks include:
 - `check_hpe_raid.py` 33 hardware-independent unit tests
 - `check_ssacli_disks.sh` shell syntax and CLI checks
 - `check_ssacli_disks.sh` hardware-independent mock-based tests
+- `check_systemd_health.py` syntax and CLI checks
+- `check_systemd_health.py` 46 automated unit and integration tests
 - Detection of committed Python bytecode
 - Legacy reference checks
+
+### check_systemd_health.py tests
+
+Run:
+
+```bash
+PYTHONPATH=plugins \
+  python3 -m unittest tests/test_check_systemd_health.py -v
+```
+
+The current suite contains **46 tests**.
+
+It covers:
+
+- duration parsing
+- exact and wildcard include/exclude filtering
+- include/exclude precedence
+- unit problem thresholds
+- restart journal parsing
+- restart unit extraction
+- restart include/exclude filtering
+- restart WARNING and CRITICAL thresholds
+- worst-severity preservation
+- argument validation
+- restart defaults
+- restart summary generation
+- complete OK state
+- failed-unit CRITICAL state
+- threshold WARNING state
+- excluded failure handling
+- restart WARNING and CRITICAL states
+- command failure UNKNOWN state
+
+The tests do not require failed systemd units or restart loops on the test host.
+
+The CI suite runs under Python 3.9, 3.11, and 3.13.
+
+A successful run ends with:
+
+```text
+Ran 46 tests in ...
+
+OK
+```
 
 ### check_hpe_raid.py tests
 
@@ -841,6 +997,15 @@ check_hpe_raid.py --ssacli /custom/path/ssacli
 
 See [docs/check_hpe_raid.md](docs/check_hpe_raid.md) for complete installation
 and configuration information.
+
+### check_systemd_health.py
+
+- Python 3
+- systemd
+- `systemctl`
+- `journalctl` when restart monitoring is enabled
+- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+- Sufficient journal access for the account running restart monitoring
 
 ## Documentation
 
