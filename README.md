@@ -762,8 +762,19 @@ command[check_systemd_health]=/usr/lib64/nagios/plugins/check_systemd_health.py 
 ```
 
 Restart monitoring requires the NRPE account to have sufficient access to the
-systemd journal. Verify journal access using the same account that runs the
-plugin.
+systemd journal.
+
+Verify journal access using the same account that runs the plugin. For example:
+
+```bash
+sudo -u nrpe journalctl \
+  --since "30 minutes ago" \
+  --no-pager \
+  -o cat \
+  _PID=1
+```
+
+Do not grant unrestricted sudo access solely to enable journal monitoring.
 
 ## Nagios exit codes
 
