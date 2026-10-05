@@ -2,6 +2,68 @@
 
 All notable changes to this repository will be documented here.
 
+## check_systemd_health.py 1.0.2 - 2026-10-05
+
+Initial public release of `check_systemd_health.py`.
+
+- Added systemd unit health monitoring for Nagios and Icinga.
+- Added failed systemd unit detection with CRITICAL status by default.
+- Added support for monitoring arbitrary systemd unit states through `--state`.
+- Added support for filtering by systemd unit type through `--type`.
+- Added `--include` filtering for individual units and shell-style wildcard patterns.
+- Added `--exclude` filtering for individual units and shell-style wildcard patterns.
+- Added exclude-over-include precedence.
+- Added support for explicitly excluding known failed units from the monitoring result.
+- Added configurable unit WARNING and CRITICAL thresholds through `--warning` and `--critical`.
+- Added validation requiring the WARNING threshold to be lower than the CRITICAL threshold.
+- Added automatic service restart monitoring through `--check-restarts`.
+- Added systemd journal-based restart detection using `Scheduled restart job` events.
+- Added restart detection for services that are no longer loaded when the check runs.
+- Added configurable restart monitoring windows through `--since`.
+- Added support for second, minute, hour, and day duration suffixes.
+- Added a 30-minute default restart monitoring window.
+- Added configurable per-service restart WARNING and CRITICAL thresholds.
+- Added default restart thresholds of 3 for WARNING and 5 for CRITICAL.
+- Added validation requiring the restart WARNING threshold to be lower than the restart CRITICAL threshold.
+- Added include and exclude filtering to restart monitoring.
+- Added worst-severity preservation between unit health and restart monitoring results.
+- Optimized restart monitoring to use a single systemd journal query instead of one query per service.
+- Added restart event detection independent of the currently loaded systemd service list.
+- Added Nagios-compatible `problems`, `excluded`, and `restarts` performance data.
+- Added standard Nagios OK, WARNING, CRITICAL, and UNKNOWN exit states.
+- Added Nagios UNKNOWN handling for invalid command-line arguments.
+- Added Nagios UNKNOWN handling for invalid option combinations.
+- Added Nagios UNKNOWN handling for command execution failures and timeouts.
+- Added configurable command timeout with a 30-second default.
+- Added `-v` verbose output.
+- Added `-vv` debug output.
+- Added `--version` and `--help` command-line options.
+- Added NRPE integration documentation.
+- Documented systemd journal access requirements for restart monitoring.
+- Added 46 automated unit and integration tests.
+- Added duration parsing tests.
+- Added exact and wildcard include/exclude filtering tests.
+- Added include/exclude precedence tests.
+- Added unit problem threshold tests.
+- Added restart journal parsing and service extraction tests.
+- Added restart include/exclude filtering tests.
+- Added restart WARNING and CRITICAL threshold tests.
+- Added argument validation and default-value tests.
+- Added complete OK, WARNING, CRITICAL, excluded-failure, restart, and UNKNOWN main-path tests.
+- Added Python syntax and CLI validation to GitHub Actions.
+- Added automated test execution to the repository `Plugin tests` workflow.
+- Added CI validation with Python 3.9, 3.11, and 3.13.
+- Added dedicated `check_systemd_health.py` documentation.
+- Added installation, NRPE, restart monitoring, troubleshooting, and testing documentation.
+- Validated on Rocky Linux 9 with systemd.
+- Validated failed-service detection against a real intentionally failed systemd service.
+- Validated exact and wildcard include/exclude filtering against real systemd state.
+- Validated WARNING and CRITICAL unit thresholds against real systemd state.
+- Validated restart-loop detection against a real automatically restarting systemd service.
+- Validated restart detection for a service that was no longer loaded.
+- Validated journal restart counts against direct `journalctl` results.
+- Reduced the measured restart-check runtime from approximately 1.8 seconds to approximately 0.06 seconds by replacing per-service journal queries with a single journal query.
+
 ## check_hpe_raid.py 1.0.0 - 2026-09-28
 
 Initial public release of `check_hpe_raid.py`.
