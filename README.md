@@ -311,6 +311,10 @@ Restart example:
 SYSTEMD CRITICAL: system state degraded; 0 matching problem units; nginx.service restarted 7 times | problems=0 excluded=0 restarts=7
 ```
 
+Full documentation:
+
+[docs/check_systemd_health.md](docs/check_systemd_health.md)
+
 ## HPE Smart Array monitoring
 
 The repository contains two complementary HPE Smart Array plugins.
@@ -1007,6 +1011,10 @@ and configuration information.
 - Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
 - Sufficient journal access for the account running restart monitoring
 
+See [docs/check_systemd_health.md](docs/check_systemd_health.md) for complete
+installation, configuration, restart monitoring, NRPE, and troubleshooting
+information.
+
 ## Documentation
 
 - [check_dnf.py documentation](docs/check_dnf.md)
@@ -1014,6 +1022,7 @@ and configuration information.
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
 - [check_ssacli_disks.sh documentation](docs/check_ssacli_disks.md)
 - [check_hpe_raid.py documentation](docs/check_hpe_raid.md)
+- [check_systemd_health.py documentation](docs/check_systemd_health.md)
 - [Changelog](CHANGELOG.md)
 - [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
 
