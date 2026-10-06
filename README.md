@@ -17,7 +17,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
 | `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
-| `check_container_health.py` | 1.0.1 | Pending first release |
+| `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
 
 Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
@@ -459,13 +459,14 @@ curl -L -o check_systemd_health.py \
 chmod +x check_systemd_health.py
 ```
 
+````markdown
 ### Download check_container_health.py
 
-The plugin is currently available from the repository and will receive a plugin-specific release tag with its first release.
+Latest released version:
 
 ```bash
 curl -L -o check_container_health.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_container_health.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-container-health-v1.0.1/plugins/check_container_health.py
 
 chmod +x check_container_health.py
 ```
