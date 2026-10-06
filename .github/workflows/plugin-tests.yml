@@ -42,6 +42,10 @@ jobs:
         run: |
           python -m compileall -q plugins/
 
+      # ------------------------------------------------------------------
+      # check_dnf.py
+      # ------------------------------------------------------------------
+
       - name: Check check_dnf.py version
         run: |
           python plugins/check_dnf.py --version
@@ -53,6 +57,10 @@ jobs:
       - name: Check check_dnf.py unit tests
         run: |
           python -m unittest discover -s tests -p 'test_check_dnf.py' -v
+
+      # ------------------------------------------------------------------
+      # check_librenms_validate
+      # ------------------------------------------------------------------
 
       - name: Check LibreNMS plugin shell syntax
         run: |
@@ -67,6 +75,10 @@ jobs:
         run: |
           bash tests/test_check_librenms_validate.sh
 
+      # ------------------------------------------------------------------
+      # check_hpe_hardware.py
+      # ------------------------------------------------------------------
+
       - name: Check HPE plugin syntax
         run: |
           python -m py_compile plugins/check_hpe_hardware.py
@@ -79,6 +91,10 @@ jobs:
       - name: Run HPE plugin tests
         run: |
           python -m unittest tests/test_check_hpe_hardware.py -v
+
+      # ------------------------------------------------------------------
+      # check_ssacli_disks.sh
+      # ------------------------------------------------------------------
 
       - name: Check ssacli plugin shell syntax
         run: |
@@ -96,6 +112,10 @@ jobs:
         run: |
           bash tests/test_check_ssacli_disks.sh
 
+      # ------------------------------------------------------------------
+      # check_hpe_raid.py
+      # ------------------------------------------------------------------
+
       - name: Check HPE RAID plugin syntax
         run: |
           python -m py_compile plugins/check_hpe_raid.py
@@ -109,6 +129,10 @@ jobs:
       - name: Run HPE RAID plugin tests
         run: |
           python -m unittest tests/test_check_hpe_raid.py -v
+
+      # ------------------------------------------------------------------
+      # check_systemd_health.py
+      # ------------------------------------------------------------------
 
       - name: Check systemd health plugin syntax
         run: |
@@ -125,6 +149,30 @@ jobs:
           PYTHONPATH: plugins
         run: |
           python -m unittest tests/test_check_systemd_health.py -v
+
+      # ------------------------------------------------------------------
+      # check_container_health.py
+      # ------------------------------------------------------------------
+
+      - name: Check container health plugin syntax
+        run: |
+          python -m py_compile plugins/check_container_health.py
+          python -m py_compile tests/test_check_container_health.py
+
+      - name: Check container health plugin CLI
+        run: |
+          python plugins/check_container_health.py --version
+          python plugins/check_container_health.py --help
+
+      - name: Run container health plugin tests
+        env:
+          PYTHONPATH: plugins
+        run: |
+          python -m unittest tests/test_check_container_health.py -v
+
+      # ------------------------------------------------------------------
+      # Repository checks
+      # ------------------------------------------------------------------
 
       - name: Check for committed Python bytecode
         run: |

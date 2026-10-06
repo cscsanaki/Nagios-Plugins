@@ -3,7 +3,7 @@
 [![Plugin tests](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml/badge.svg)](https://github.com/cscsanaki/Nagios-Plugins/actions/workflows/plugin-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.11%20%7C%203.13-blue.svg)](https://www.python.org/)
-[![Bash](https://img.shields.io/badge/Bash-Shell_Scripts-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Bash](https://img.shields.io/badge/Bash-Shell%20Scripts-green.svg)](https://www.gnu.org/software/bash/)
 
 A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux systems.
 
@@ -11,23 +11,21 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Release |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/v1.2.0) |
+| `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-dnf-v1.2.0) |
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
 | `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
 | `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
+| `check_container_health.py` | 1.0.1 | Pending first release |
 
-Each plugin is versioned independently. See the
-[Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for
-plugin-specific release notes and source archives.
+Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ## Plugins
 
 ### check_dnf.py
 
-Python 3 plugin for monitoring package updates on modern DNF-based
-RHEL-compatible Linux distributions.
+Python 3 plugin for monitoring package updates on DNF-based RHEL-compatible Linux distributions.
 
 Currently tested on Rocky Linux 9.8.
 
@@ -39,319 +37,361 @@ Features:
 - CRITICAL by default when a reboot is required
 - Reports the installed security kernel and currently running kernel
 - Provides Nagios-compatible performance data
-- Supports repository enable/disable options
-- Supports optional cache-only operation
-- Supports configurable timeout and security thresholds
-- Provides verbose diagnostic output
-- Uses standard Nagios exit codes
-- Includes automated unit tests
+- Configurable command timeout
+- Nagios-compatible OK, WARNING, CRITICAL, and UNKNOWN exit codes
+- No third-party Python modules required
 
 Example:
+
+```bash
+./check_dnf.py
+```
+
+Example output:
+
+```text
+DNF OK: 0 security updates, 0 non-security updates, 0 total | security_updates=0 non_security_updates=0 total_updates=0
+```
+
+Example with updates and reboot required:
 
 ```text
 DNF CRITICAL: 0 security updates, 13 non-security updates, 13 total, reboot required (security kernel 5.14.0-687.49.1.el9_8 installed, running 5.14.0-687.46.1.el9_8) | security_updates=0 non_security_updates=13 total_updates=13 reboot_required=1
 ```
 
-Full documentation:
+See [docs/check_dnf.md](docs/check_dnf.md) for detailed documentation.
 
-[docs/check_dnf.md](docs/check_dnf.md)
+---
 
 ### check_librenms_validate
 
-Nagios/Icinga plugin for monitoring the result of LibreNMS `validate.php`.
-
-Currently tested with LibreNMS 26.9.1.
+Bash Nagios/Icinga plugin for monitoring the output of LibreNMS `validate.php`.
 
 Features:
 
+- Executes LibreNMS validation non-interactively
+- Runs `validate.php` as the `librenms` account
 - Maps LibreNMS `WARN` results to Nagios WARNING
 - Maps LibreNMS `FAIL` results to Nagios CRITICAL
-- FAIL takes priority over WARN
-- Handles ANSI-coloured LibreNMS output
-- Detects execution failures and timeouts as UNKNOWN
-- Supports a configurable validation timeout
-- Provides `failures` and `warnings` performance data
-- Supports NRPE with a narrowly scoped sudoers rule
-- Includes automated mock-based tests
+- Handles ANSI colour escape sequences
+- Configurable validation timeout
+- Reports failures and warnings as performance data
+- Designed for NRPE operation using a narrowly scoped sudoers rule
 
 Example:
 
-```text
-LIBRENMS WARNING: 1 warning - Your install is over 24 hours out of date, last update: Thu, 24 Sep 2026 12:37:05 +0000 | failures=0 warnings=1
+```bash
+./check_librenms_validate
 ```
 
-Full documentation:
+Example output:
 
-[docs/check_librenms_validate.md](docs/check_librenms_validate.md)
+```text
+LIBRENMS WARNING: 1 warning - Your install is over 24 hours out of date | failures=0 warnings=1
+```
+
+See [docs/check_librenms_validate.md](docs/check_librenms_validate.md) for detailed documentation.
+
+---
 
 ### check_hpe_hardware.py
 
-Nagios/Icinga plugin for monitoring HPE server hardware through the local
-HPE iLOrest CLI.
+Python 3 Nagios/Icinga plugin for monitoring HPE ProLiant server hardware through HPE iLOrest.
 
-Current version: **1.0.4**
+Tested with:
 
-Tested on real hardware with:
-
-- HPE ProLiant DL380 Gen10 / iLO 5 / Rocky Linux 9
-- HPE ProLiant DL380 Gen11 / iLO 6 / Debian 12
-- HPE iLOrest 7.3.0.0
-
-The Debian 12 / DL380 Gen11 configuration has been validated on two separate
-servers with local CHIF access, NRPE, and end-to-end Nagios monitoring.
+- HPE ProLiant DL380 Gen10
+- HPE ProLiant DL380 Gen11
+- iLO 5
+- iLO 6
+- HPE iLOrest
+- Rocky Linux
+- Debian 12
 
 Features:
 
-- Monitors HPE hardware health through the local iLOrest CLI
-- Reports OK, WARNING, CRITICAL, and UNKNOWN Nagios states
-- Preserves the worst hardware health state found
-- Reports server model and serial number
-- Reports active ROM/BIOS version
-- Reports iLO 5 and iLO 6 firmware versions
-- Prevents component `Model:` fields from overwriting the server model
-- Prevents redundant ROM information from overwriting the active ROM
-- Adds recent IML entries to WARNING and CRITICAL output
-- Handles iLOrest, CHIF, login, execution, and timeout failures as UNKNOWN
-- Automatically discovers common iLOrest installation locations
-- Supports an explicit custom iLOrest executable path
-- Uses a 60-second default iLOrest command timeout
-- Uses sysfs and `dmidecode` as local BIOS fallbacks
-- Supports NRPE with narrowly scoped sudoers rules
-- Includes hardware-independent automated regression tests
+- HPE server model reporting
+- Serial number reporting
+- Active System ROM/BIOS reporting
+- iLO firmware reporting
+- Hardware health monitoring
+- Integrated Management Log information for hardware problems
+- Automatic iLOrest executable discovery
+- Support for common iLOrest installation paths
+- Explicit custom iLOrest executable path
+- Local CHIF access
+- Configurable command timeout
+- Nagios-compatible exit codes
+- NRPE support
 
-Example Gen10 result:
+Example:
 
-```text
-HPE OK: hardware is healthy (Model: HPE ProLiant DL380 Gen10, S/N: CZ282701B5, ROM: U30 v3.70 (08/19/2026), iLO: iLO 5: 3.21 Jul 30 2026)
+```bash
+./check_hpe_hardware.py
 ```
 
-Example Gen11 result:
+See [docs/check_hpe_hardware.md](docs/check_hpe_hardware.md) for detailed documentation.
 
-```text
-HPE OK: hardware is healthy (Model: HPE ProLiant DL380 Gen11, S/N: CZ2D2M083G, ROM: U54 v3.00 (08/20/2026), iLO: iLO 6: 1.78 Jul 29 2026)
-```
-
-Full documentation:
-
-[docs/check_hpe_hardware.md](docs/check_hpe_hardware.md)
+---
 
 ### check_ssacli_disks.sh
 
-Bash Nagios/Icinga plugin for monitoring HPE Smart Array physical drive health
-through HPE Smart Storage Administrator CLI (`ssacli`).
-
-Current version: **1.0.0**
-
-**The HPE `ssacli` package is required on the monitored server.**
-
-The plugin has been validated on real HPE Smart Array hardware with eight
-physical drives and through an end-to-end NRPE/Nagios monitoring path.
+Bash Nagios/Icinga plugin for monitoring HPE Smart Array physical drives through HPE Smart Storage Administrator CLI (`ssacli`).
 
 Features:
 
-- Discovers HPE Smart Array controllers automatically
-- Supports multiple Smart Array controllers
-- Queries all physical drives through `ssacli`
-- Reports OK when all discovered physical drives are healthy
-- Reports CRITICAL when one or more physical drives are not `Status: OK`
-- Reports UNKNOWN when `ssacli` is missing or cannot be executed
-- Reports UNKNOWN when controller discovery fails
-- Reports UNKNOWN when no Smart Array controller is found
-- Reports UNKNOWN when a controller cannot be queried
-- Reports UNKNOWN when no physical drives are found
-- Treats a physical drive with no reported status as problematic
-- Reports controller slot and physical drive identifier for failed drives
-- Provides Nagios-compatible performance data
-- Supports a custom `ssacli` executable through `SSACLI_BIN`
-- Includes hardware-independent mock-based tests
+- Automatic Smart Array controller discovery
+- Multiple controller support
+- Monitoring of all discovered physical drives
+- CRITICAL for non-OK physical drive states
+- Detection of missing physical-drive status
+- Controller slot and physical-drive identifiers in problem output
+- Nagios-compatible performance data
+- Configurable `ssacli` executable through `SSACLI_BIN`
+- NRPE support with a narrowly scoped sudoers rule
+- Hardware-independent mock-based automated tests
 
-Example healthy result:
+Example:
 
-```text
-SSACLI OK: all 8 physical drive(s) are healthy | drives=8 problems=0
+```bash
+./check_ssacli_disks.sh
 ```
 
-Example problem result:
+See [docs/check_ssacli_disks.md](docs/check_ssacli_disks.md) for detailed documentation.
 
-```text
-SSACLI CRITICAL: 1 problematic drive(s) found: Slot 0, Drive 1I:1:2 (Failed) | drives=8 problems=1
-```
-
-Full documentation:
-
-[docs/check_ssacli_disks.md](docs/check_ssacli_disks.md)
+---
 
 ### check_hpe_raid.py
 
-Python 3 Nagios/Icinga plugin for monitoring HPE Smart Array RAID health
-through HPE Smart Storage Administrator CLI (`ssacli`).
-
-Current version: **1.0.0**
-
-**The HPE `ssacli` package is required on the monitored server.**
-
-The plugin monitors the logical RAID hierarchy:
-
-```text
-Smart Array controller
-        |
-      Array
-        |
-   Logical drive
-```
-
-It complements `check_ssacli_disks.sh`, which monitors the underlying physical
-drives.
-
-The plugin has been validated on real HPE hardware with:
-
-```text
-HPE Smart Array P408i-a SR Gen10
-```
-
-Tested configuration:
-
-```text
-Controller
-├── Array A
-│   └── LUN1
-└── Array B
-    └── LUN2
-```
+Python 3 Nagios/Icinga plugin for monitoring HPE Smart Array RAID configuration and health through HPE Smart Storage Administrator CLI (`ssacli`).
 
 Features:
 
-- Discovers HPE Smart Array controllers automatically
-- Supports multiple Smart Array controllers
-- Monitors controller health
-- Discovers and monitors arrays
-- Discovers and monitors logical drives
-- Reports rebuilding/recovering logical drives as WARNING
-- Reports failed controllers as CRITICAL
-- Reports failed arrays as CRITICAL
-- Reports failed or otherwise unhealthy logical drives as CRITICAL
-- Reports missing controller status as UNKNOWN
-- Reports missing controllers or arrays as UNKNOWN
-- Handles `ssacli` command failures and timeouts as UNKNOWN
-- Preserves the worst Nagios state found
-- Automatically searches common `ssacli` locations
-- Supports an explicit `--ssacli` executable path
-- Supports a configurable command timeout
-- Provides Nagios-compatible performance data
-- Includes 33 hardware-independent unit tests
-- Tested under Python 3.9, 3.11, and 3.13 in CI
-- Validated through NRPE and end-to-end Nagios monitoring
+- Automatic Smart Array controller discovery
+- Multiple controller support
+- Controller health monitoring
+- Array discovery and health monitoring
+- Logical drive discovery and health monitoring
+- OK handling for healthy logical drives
+- Support for `Disabled` logical drive state as OK
+- WARNING for rebuild/recovery states
+- CRITICAL for unhealthy controllers, arrays, and logical drives
+- UNKNOWN handling when status information is unavailable
+- Automatic `ssacli` executable discovery
+- Explicit `--ssacli` executable path
+- Configurable command timeout
+- Nagios-compatible performance data
+- NRPE support
+- Hardware-independent automated tests
 
-Healthy example:
+Example:
 
-```text
-HPE RAID OK: HPE Smart Array P408i-a SR Gen10[OK]: Array A(OK)[LUN1:OK], Array B(OK)[LUN2:OK] | controllers=1 arrays=2 logical_drives=2 problems=0
+```bash
+./check_hpe_raid.py
 ```
 
-Example WARNING:
+See [docs/check_hpe_raid.md](docs/check_hpe_raid.md) for detailed documentation.
 
-```text
-HPE RAID WARNING: HPE Smart Array P408i-a SR Gen10[OK]: Array A(OK)[LUN1:Rebuild], Array B(OK)[LUN2:OK] | controllers=1 arrays=2 logical_drives=2 problems=1
-```
-
-Example CRITICAL:
-
-```text
-HPE RAID CRITICAL: HPE Smart Array P408i-a SR Gen10[OK]: Array A(OK)[LUN1:Failed], Array B(OK)[LUN2:OK] | controllers=1 arrays=2 logical_drives=2 problems=1
-```
-
-Full documentation:
-
-[docs/check_hpe_raid.md](docs/check_hpe_raid.md)
+---
 
 ### check_systemd_health.py
 
-Python 3 Nagios/Icinga plugin for monitoring systemd unit health and excessive
-service restarts.
-
-Current version: **1.0.2**
-
-Tested on Rocky Linux 9 with systemd.
+Python 3 Nagios/Icinga plugin for monitoring systemd system and unit health.
 
 Features:
 
-- Monitors failed systemd units
-- Supports arbitrary unit states with `--state`
-- Supports unit type filtering with `--type`
-- Supports `--include` and `--exclude` filters
-- Supports shell-style wildcard patterns
-- Supports configurable WARNING and CRITICAL problem thresholds
-- Monitors automatic service restart events through the systemd journal
-- Detects restart events even when the affected service is no longer loaded
-- Uses a single journal query for efficient restart monitoring
-- Supports configurable restart WARNING and CRITICAL thresholds
-- Supports configurable restart monitoring windows with `--since`
-- Reports command failures and timeouts as UNKNOWN
-- Reports invalid command-line arguments as UNKNOWN
-- Provides Nagios-compatible performance data
-- Supports verbose (`-v`) and debug (`-vv`) output
-- Includes 46 automated tests
-- Tested under Python 3.9, 3.11, and 3.13 in CI
+- Checks the overall systemd system state
+- Detects failed systemd units
+- Supports configurable unit states
+- Supports configurable unit types
+- Exact and shell-style wildcard include filtering
+- Exact and shell-style wildcard exclude filtering
+- Exclude patterns take precedence over include patterns
+- Configurable WARNING and CRITICAL thresholds
+- Optional service restart monitoring through the systemd journal
+- Configurable restart WARNING and CRITICAL thresholds
+- Configurable restart monitoring window
+- Restart detection can identify services that are no longer loaded
+- Uses a single journal query for restart-event collection
+- Nagios-compatible performance data
+- Configurable command timeout
+- Verbose and debug output
+- Nagios-compatible OK, WARNING, CRITICAL, and UNKNOWN exit codes
+- No third-party Python modules required
+- Hardware-independent automated tests
 
-Healthy example:
+Example:
+
+```bash
+./check_systemd_health.py
+```
+
+Example output:
 
 ```text
 SYSTEMD OK: system running; 0 matching problem units | problems=0 excluded=0
 ```
 
-Failed unit example:
-
-```text
-SYSTEMD CRITICAL: system state degraded; 1 matching unit - backup.service | problems=1 excluded=0
-```
-
-Restart example:
-
-```text
-SYSTEMD CRITICAL: system state degraded; 0 matching problem units; nginx.service restarted 7 times | problems=0 excluded=0 restarts=7
-```
-
-Full documentation:
-
-[docs/check_systemd_health.md](docs/check_systemd_health.md)
-
-## HPE Smart Array monitoring
-
-The repository contains two complementary HPE Smart Array plugins.
-
-### Logical RAID health
-
-`check_hpe_raid.py` monitors:
-
-```text
-Smart Array controller
-        ↓
-      Array
-        ↓
-   Logical drive
-```
-
-### Physical disk health
-
-`check_ssacli_disks.sh` monitors:
-
-```text
-Physical drives
-```
-
-For complete Smart Array monitoring, both plugins can be used together.
-
-Both require the HPE Smart Storage Administrator CLI (`ssacli`) package on the
-monitored server.
-
-## Download
-
-### Clone the repository
+Restart monitoring:
 
 ```bash
-git clone https://github.com/cscsanaki/Nagios-Plugins.git
-cd Nagios-Plugins
+./check_systemd_health.py \
+  --check-restarts \
+  --since 30m \
+  --restart-warning 3 \
+  --restart-critical 5
 ```
+
+Example problem:
+
+```text
+SYSTEMD CRITICAL: system state degraded; 0 matching problem units; application.service restarted 7 times | problems=0 excluded=0 restarts=7
+```
+
+See [docs/check_systemd_health.md](docs/check_systemd_health.md) for detailed documentation.
+
+---
+
+### check_container_health.py
+
+Python 3 Nagios/Icinga plugin for monitoring Docker container state, health, restart counts, and resource usage.
+
+Current version: **1.0.1**
+
+Version 1.0.1 supports Docker. Podman support is not yet available.
+
+Features:
+
+- Automatic Docker runtime detection
+- Monitoring of all Docker containers on a host
+- Monitoring of one specific container by exact name, full ID, or unique ID prefix
+- Shell-style `--include` and `--exclude` filtering
+- Expected-container monitoring with `--expect`
+- Container state monitoring
+- Docker HEALTHCHECK monitoring
+- Detection of OOM-killed containers
+- Optional Docker lifetime restart-count monitoring
+- CPU usage monitoring
+- Memory usage monitoring
+- PID count collection
+- CPU and memory WARNING/CRITICAL thresholds
+- CPU percentages above 100% supported
+- Detection of containers without an explicit Docker memory limit
+- Nagios-compatible performance data
+- Configurable problem-count thresholds
+- Configurable command timeout
+- Configurable maximum problem details
+- Verbose and debug output
+- Nagios-compatible OK, WARNING, CRITICAL, and UNKNOWN exit codes
+- No third-party Python modules required
+- Read-only Docker monitoring
+- 109 hardware-independent automated tests
+
+Basic check:
+
+```bash
+./check_container_health.py
+```
+
+Example:
+
+```text
+CONTAINERS OK: 5 containers, 5 running, no problems | containers=5 running=5 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0
+```
+
+Monitor one container:
+
+```bash
+./check_container_health.py \
+  --container kof-grafana
+```
+
+Example:
+
+```text
+CONTAINERS OK: kof-grafana running, health=none, restarts=0 | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0
+```
+
+Monitor one container including CPU, memory, and PID statistics:
+
+```bash
+./check_container_health.py \
+  --container kof-grafana \
+  --check-resources
+```
+
+Example:
+
+```text
+CONTAINERS OK: kof-grafana running, health=none, restarts=0, CPU 0.05%, memory 2.22% | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0 'kof-grafana_cpu'=0.05% 'kof-grafana_memory'=2.22% 'kof-grafana_memory_bytes'=178887065B 'kof-grafana_pids'=16
+```
+
+Configure CPU and memory thresholds:
+
+```bash
+./check_container_health.py \
+  --container kof-grafana \
+  --check-resources \
+  --cpu-warning 80 \
+  --cpu-critical 95 \
+  --memory-warning 80 \
+  --memory-critical 90
+```
+
+Monitor restart counts:
+
+```bash
+./check_container_health.py \
+  --check-restarts \
+  --restart-warning 3 \
+  --restart-critical 5
+```
+
+Restart monitoring uses Docker's lifetime `RestartCount`. Version 1.0.1 does not currently provide a time-window-based restart counter.
+
+Require specific containers:
+
+```bash
+./check_container_health.py \
+  --expect kof-grafana \
+  --expect kof-nginx_be
+```
+
+Monitor only selected container groups:
+
+```bash
+./check_container_health.py \
+  --include 'kof-*'
+```
+
+Exclude selected containers:
+
+```bash
+./check_container_health.py \
+  --exclude 'test-*'
+```
+
+Combine include and exclude filters:
+
+```bash
+./check_container_health.py \
+  --include 'atom-*' \
+  --exclude '*fluent-bit'
+```
+
+Resource and restart monitoring can be combined:
+
+```bash
+./check_container_health.py \
+  --check-restarts \
+  --check-resources
+```
+
+The plugin performs read-only Docker queries and does not intentionally create, start, stop, restart, pause, unpause, or remove containers.
+
+See [docs/check_container_health.md](docs/check_container_health.md) for detailed documentation.
+
+## Download
 
 ### Download check_dnf.py
 
@@ -359,7 +399,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_dnf.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/v1.2.0/plugins/check_dnf.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.0/plugins/check_dnf.py
 
 chmod +x check_dnf.py
 ```
@@ -419,8 +459,18 @@ curl -L -o check_systemd_health.py \
 chmod +x check_systemd_health.py
 ```
 
-See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
-page for plugin-specific release notes and source archives.
+### Download check_container_health.py
+
+The plugin is currently available from the repository and will receive a plugin-specific release tag with its first release.
+
+```bash
+curl -L -o check_container_health.py \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/main/plugins/check_container_health.py
+
+chmod +x check_container_health.py
+```
+
+See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ## Installation
 
@@ -432,567 +482,333 @@ The standard Nagios plugin directory is commonly:
 /usr/lib64/nagios/plugins
 ```
 
-#### check_dnf.py
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_dnf.py \
-  /usr/lib64/nagios/plugins/check_dnf.py
-```
-
-#### check_librenms_validate
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_librenms_validate \
-  /usr/lib64/nagios/plugins/check_librenms_validate
-```
-
-#### check_hpe_hardware.py
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_hpe_hardware.py \
-  /usr/lib64/nagios/plugins/check_hpe_hardware.py
-```
-
-#### check_ssacli_disks.sh
-
-**The HPE `ssacli` package must be installed before using this plugin.**
-
-Install:
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_ssacli_disks.sh \
-  /usr/lib64/nagios/plugins/check_ssacli_disks.sh
-```
-
-Test:
-
-```bash
-sudo /usr/lib64/nagios/plugins/check_ssacli_disks.sh
-```
-
-#### check_hpe_raid.py
-
-**The HPE `ssacli` package must be installed before using this plugin.**
-
-Verify `ssacli`:
-
-```bash
-/usr/sbin/ssacli version
-```
-
-Install:
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_hpe_raid.py \
-  /usr/lib64/nagios/plugins/check_hpe_raid.py
-```
-
-Verify the plugin:
-
-```bash
-/usr/lib64/nagios/plugins/check_hpe_raid.py --version
-```
-
-Test against the Smart Array:
-
-```bash
-sudo /usr/lib64/nagios/plugins/check_hpe_raid.py
-```
-
-#### check_systemd_health.py
-
-Install:
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_systemd_health.py \
-  /usr/lib64/nagios/plugins/check_systemd_health.py
-```
-
-Verify:
-
-```bash
-/usr/lib64/nagios/plugins/check_systemd_health.py --version
-```
-
-Basic test:
-
-```bash
-/usr/lib64/nagios/plugins/check_systemd_health.py
-```
-
-Restart monitoring example:
-
-```bash
-/usr/lib64/nagios/plugins/check_systemd_health.py \
-  --check-restarts \
-  --since 30m \
-  --restart-warning 3 \
-  --restart-critical 5
-```
-
-### Debian
-
-The standard Nagios plugin directory is commonly:
-
-```text
-/usr/lib/nagios/plugins
-```
-
-Install the HPE hardware plugin:
-
-```bash
-sudo install -o root -g root -m 0755 \
-  plugins/check_hpe_hardware.py \
-  /usr/lib/nagios/plugins/check_hpe_hardware.py
-```
-
-Test:
-
-```bash
-sudo /usr/lib/nagios/plugins/check_hpe_hardware.py
-```
-
-For the tested Debian 12 iLOrest installation procedure, see
-[docs/check_hpe_hardware.md](docs/check_hpe_hardware.md#debian-12-ilorest-installation).
-
-## HPE iLOrest discovery
-
-`check_hpe_hardware.py` 1.0.4 automatically searches for iLOrest in this order:
-
-```text
-/opt/ilorest/bin/ilorest
-/usr/sbin/ilorest
-/usr/bin/ilorest
-/usr/local/bin/ilorest
-PATH
-```
-
-A custom path can be supplied explicitly:
-
-```bash
-check_hpe_hardware.py --ilorest /custom/path/ilorest
-```
-
-On the tested Debian 12 systems, iLOrest 7.3.0.0 is installed at:
-
-```text
-/opt/ilorest/bin/ilorest
-```
-
-On the tested Rocky Linux system, iLOrest is available at:
-
-```text
-/usr/sbin/ilorest
-```
-
-## HPE ssacli dependency
-
-Both Smart Array plugins require HPE Smart Storage Administrator CLI
-(`ssacli`):
-
-```text
-check_hpe_raid.py
-check_ssacli_disks.sh
-```
-
-**The HPE `ssacli` package must be installed on the monitored server.**
-
-The default executable is commonly:
-
-```text
-/usr/sbin/ssacli
-```
-
-Verify it with:
-
-```bash
-/usr/sbin/ssacli version
-```
-
-`check_hpe_raid.py` can use an explicit custom path:
-
-```bash
-check_hpe_raid.py --ssacli /custom/path/ssacli
-```
-
-`check_ssacli_disks.sh` supports a custom executable through:
-
-```bash
-SSACLI_BIN=/custom/path/ssacli check_ssacli_disks.sh
-```
-
-## NRPE integration
-
 ### check_dnf.py
 
-Example:
+```bash
+sudo cp check_dnf.py /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_dnf.py
+```
+
+### check_librenms_validate
+
+```bash
+sudo cp check_librenms_validate /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_librenms_validate
+```
+
+### check_hpe_hardware.py
+
+```bash
+sudo cp check_hpe_hardware.py /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_hpe_hardware.py
+```
+
+### check_ssacli_disks.sh
+
+```bash
+sudo cp check_ssacli_disks.sh /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_ssacli_disks.sh
+```
+
+### check_hpe_raid.py
+
+```bash
+sudo cp check_hpe_raid.py /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_hpe_raid.py
+```
+
+### check_systemd_health.py
+
+```bash
+sudo cp check_systemd_health.py /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_systemd_health.py
+```
+
+### check_container_health.py
+
+```bash
+sudo cp check_container_health.py /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_container_health.py
+```
+
+The account running the container plugin must be able to communicate with the Docker daemon.
+
+Test access with:
+
+```bash
+docker info
+docker ps
+```
+
+For NRPE:
+
+```bash
+sudo -u nrpe docker info
+sudo -u nrpe docker ps
+```
+
+Docker socket access is security-sensitive and should be granted carefully.
+
+## NRPE examples
+
+### DNF
 
 ```text
 command[check_dnf]=/usr/lib64/nagios/plugins/check_dnf.py
 ```
 
-### check_librenms_validate
-
-Example sudoers rule:
-
-```text
-nrpe ALL=(librenms) NOPASSWD: /opt/librenms/validate.php
-```
-
-NRPE:
+### LibreNMS
 
 ```text
 command[check_librenms_validate]=/usr/lib64/nagios/plugins/check_librenms_validate
 ```
 
-### check_hpe_hardware.py — RHEL / Rocky Linux
-
-sudoers:
+### HPE hardware
 
 ```text
-nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_hardware.py
+command[check_hpe_hardware]=/usr/lib64/nagios/plugins/check_hpe_hardware.py
 ```
 
-NRPE:
+### HPE physical disks
 
 ```text
-command[check_hpe_hardware]=sudo -n /usr/lib64/nagios/plugins/check_hpe_hardware.py
+command[check_ssacli_disks]=/usr/lib64/nagios/plugins/check_ssacli_disks.sh
 ```
 
-Local test:
-
-```bash
-sudo -u nrpe sudo -n \
-  /usr/lib64/nagios/plugins/check_hpe_hardware.py
-```
-
-### check_hpe_hardware.py — Debian
-
-sudoers:
+### HPE RAID
 
 ```text
-nagios ALL=(root) NOPASSWD: /usr/lib/nagios/plugins/check_hpe_hardware.py
+command[check_hpe_raid]=/usr/lib64/nagios/plugins/check_hpe_raid.py
 ```
 
-NRPE:
-
-```text
-command[check_hpe_hardware]=sudo -n /usr/lib/nagios/plugins/check_hpe_hardware.py
-```
-
-### check_ssacli_disks.sh
-
-sudoers:
-
-```text
-nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_ssacli_disks.sh
-```
-
-NRPE:
-
-```text
-command[check_ssacli_disks]=sudo -n /usr/lib64/nagios/plugins/check_ssacli_disks.sh
-```
-
-Local test:
-
-```bash
-sudo -u nrpe sudo -n \
-  /usr/lib64/nagios/plugins/check_ssacli_disks.sh
-```
-
-### check_hpe_raid.py
-
-On the tested system, `ssacli` requires elevated privileges.
-
-Use a narrowly scoped sudoers rule:
-
-```text
-nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_raid.py
-```
-
-NRPE command:
-
-```text
-command[check_hpe_raid]=sudo -n /usr/lib64/nagios/plugins/check_hpe_raid.py
-```
-
-Validate sudoers:
-
-```bash
-sudo visudo -c
-```
-
-Test as the NRPE account:
-
-```bash
-sudo -u nrpe sudo -n \
-  /usr/lib64/nagios/plugins/check_hpe_raid.py
-```
-
-Remote test:
-
-```bash
-/usr/lib64/nagios/plugins/check_nrpe \
-  -H <hpe-server> \
-  -c check_hpe_raid
-```
-
-Do not grant unrestricted sudo access to the NRPE account.
-
-### check_systemd_health.py
-
-Basic NRPE command:
+### systemd health
 
 ```text
 command[check_systemd_health]=/usr/lib64/nagios/plugins/check_systemd_health.py
 ```
 
-Example with restart monitoring:
+Restart monitoring example:
 
 ```text
-command[check_systemd_health]=/usr/lib64/nagios/plugins/check_systemd_health.py --check-restarts --since 30m --restart-warning 3 --restart-critical 5
+command[check_systemd_health_restarts]=/usr/lib64/nagios/plugins/check_systemd_health.py --check-restarts --since 30m --restart-warning 3 --restart-critical 5
 ```
 
-Restart monitoring requires the NRPE account to have sufficient access to the
-systemd journal.
+### Docker container health
 
-Verify journal access using the same account that runs the plugin. For example:
+Basic host-level monitoring:
 
-```bash
-sudo -u nrpe journalctl \
-  --since "30 minutes ago" \
-  --no-pager \
-  -o cat \
-  _PID=1
+```text
+command[check_container_health]=/usr/lib64/nagios/plugins/check_container_health.py
 ```
 
-Do not grant unrestricted sudo access solely to enable journal monitoring.
+Health plus restart monitoring:
+
+```text
+command[check_container_health_restarts]=/usr/lib64/nagios/plugins/check_container_health.py --check-restarts
+```
+
+Resource monitoring:
+
+```text
+command[check_container_resources]=/usr/lib64/nagios/plugins/check_container_health.py --check-resources
+```
+
+Specific container monitoring:
+
+```text
+command[check_container_grafana]=/usr/lib64/nagios/plugins/check_container_health.py --container kof-grafana --check-restarts --check-resources --cpu-warning 80 --cpu-critical 95 --memory-warning 80 --memory-critical 90
+```
 
 ## Nagios exit codes
 
-All plugins use the standard Nagios plugin exit codes:
+All plugins follow the standard Nagios exit-code convention:
 
-| Code | State | Meaning |
-| ---: | --- | --- |
-| 0 | OK | Check completed successfully |
-| 1 | WARNING | Warning condition detected |
-| 2 | CRITICAL | Critical condition detected |
-| 3 | UNKNOWN | Check could not reliably determine the state |
+| Exit code | State |
+| ---: | --- |
+| 0 | OK |
+| 1 | WARNING |
+| 2 | CRITICAL |
+| 3 | UNKNOWN |
 
-## Automated testing
+## Testing
 
-GitHub Actions automatically validates the repository on pushes and pull
-requests.
+The repository contains automated tests for the plugins.
 
-Workflow:
-
-```text
-.github/workflows/plugin-tests.yml
-```
-
-The Python matrix currently covers:
-
-```text
-Python 3.9
-Python 3.11
-Python 3.13
-```
-
-Current CI checks include:
-
-- Python syntax validation
-- Python 3.9, 3.11, and 3.13 compatibility
-- `check_dnf.py` unit tests
-- `check_librenms_validate` shell syntax and CLI checks
-- `check_librenms_validate` mock-based tests
-- `check_hpe_hardware.py` syntax and CLI checks
-- `check_hpe_hardware.py` hardware-independent regression tests
-- `check_hpe_raid.py` syntax and CLI checks
-- `check_hpe_raid.py` 33 hardware-independent unit tests
-- `check_ssacli_disks.sh` shell syntax and CLI checks
-- `check_ssacli_disks.sh` hardware-independent mock-based tests
-- `check_systemd_health.py` syntax and CLI checks
-- `check_systemd_health.py` 46 automated unit and integration tests
-- Detection of committed Python bytecode
-- Legacy reference checks
-
-### check_systemd_health.py tests
-
-Run:
+### check_dnf.py
 
 ```bash
-PYTHONPATH=plugins \
-  python3 -m unittest tests/test_check_systemd_health.py -v
+python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-The current suite contains **46 tests**.
-
-It covers:
-
-- duration parsing
-- exact and wildcard include/exclude filtering
-- include/exclude precedence
-- unit problem thresholds
-- restart journal parsing
-- restart unit extraction
-- restart include/exclude filtering
-- restart WARNING and CRITICAL thresholds
-- worst-severity preservation
-- argument validation
-- restart defaults
-- restart summary generation
-- complete OK state
-- failed-unit CRITICAL state
-- threshold WARNING state
-- excluded failure handling
-- restart WARNING and CRITICAL states
-- command failure UNKNOWN state
-
-The tests do not require failed systemd units or restart loops on the test host.
-
-The CI suite runs under Python 3.9, 3.11, and 3.13.
-
-A successful run ends with:
-
-```text
-Ran 46 tests in ...
-
-OK
-```
-
-### check_hpe_raid.py tests
-
-Run:
-
-```bash
-python3 -m unittest tests/test_check_hpe_raid.py -v
-```
-
-The current suite contains **33 tests**.
-
-It covers:
-
-- controller parsing
-- multiple controllers
-- missing controller status
-- array parsing
-- multiple arrays
-- logical drive parsing
-- OK / Disabled logical drive states
-- Rebuild / Rebuilding WARNING states
-- Recover / Recovering WARNING states
-- Failed logical drive state
-- Interim Recovery Mode
-- unexpected logical drive states
-- `ssacli` discovery
-- command execution
-- command timeout
-- command failure
-- complete OK state
-- WARNING state
-- CRITICAL controller state
-- CRITICAL array state
-- CRITICAL logical drive state
-- UNKNOWN states
-- worst-severity preservation
-- performance data
-
-The tests do not require HPE hardware or an installed `ssacli` package.
-
-A successful run ends with:
-
-```text
-Ran 33 tests in ...
-
-OK
-```
-
-### check_ssacli_disks.sh tests
-
-Run:
-
-```bash
-bash tests/test_check_ssacli_disks.sh
-```
-
-The tests use a mock `ssacli` and do not require HPE hardware.
-
-### check_hpe_hardware.py tests
-
-Run:
-
-```bash
-python -m unittest tests/test_check_hpe_hardware.py -v
-```
-
-The tests do not require HPE hardware.
-
-### check_librenms_validate tests
-
-Run:
+### check_librenms_validate
 
 ```bash
 bash tests/test_check_librenms_validate.sh
 ```
 
-The tests do not require a LibreNMS installation.
+### check_hpe_hardware.py
 
-## Requirements
+```bash
+python3 -m unittest tests/test_check_hpe_hardware.py -v
+```
+
+### check_ssacli_disks.sh
+
+```bash
+bash tests/test_check_ssacli_disks.sh
+```
+
+### check_hpe_raid.py
+
+```bash
+python3 -m unittest tests/test_check_hpe_raid.py -v
+```
+
+### check_systemd_health.py
+
+```bash
+PYTHONPATH=plugins \
+python3 -m unittest tests/test_check_systemd_health.py -v
+```
+
+The systemd health plugin currently has 46 automated tests.
+
+### check_container_health.py
+
+```bash
+PYTHONPATH=plugins \
+python3 -m unittest tests/test_check_container_health.py -v
+```
+
+The container health plugin currently has **109 automated tests**.
+
+The tests cover, among other things:
+
+- Docker inspect parsing
+- Docker statistics parsing
+- Containers with and without HEALTHCHECK
+- Running containers
+- Created containers
+- Paused containers
+- Restarting containers
+- Exited containers
+- Dead containers
+- OOM-killed containers
+- Restart thresholds
+- CPU thresholds
+- CPU values above 100%
+- Memory thresholds
+- Container-name and ID selection
+- Include/exclude filtering
+- Expected containers
+- Performance data
+- Docker command failures
+- Docker command timeouts
+- Complete OK/WARNING/CRITICAL/UNKNOWN execution paths
+
+## Continuous integration
+
+GitHub Actions validates the repository with:
+
+- Python 3.9
+- Python 3.11
+- Python 3.13
+
+The CI workflow performs:
+
+- Python syntax checks
+- Plugin CLI checks
+- Python unit tests
+- Bash syntax checks
+- Bash plugin tests
+- Detection of committed Python bytecode
+- Detection of legacy package-manager references
+
+For `check_container_health.py`, CI performs:
+
+```text
+Check container health plugin syntax
+Check container health plugin CLI
+Run container health plugin tests
+```
+
+The container test suite contains 109 tests and does not require access to a live Docker daemon.
+
+## Repository layout
+
+```text
+Nagios-Plugins/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   ├── workflows/
+│   │   └── plugin-tests.yml
+│   └── pull_request_template.md
+├── docs/
+│   ├── check_container_health.md
+│   ├── check_dnf.md
+│   ├── check_hpe_hardware.md
+│   ├── check_hpe_raid.md
+│   ├── check_librenms_validate.md
+│   ├── check_ssacli_disks.md
+│   └── check_systemd_health.md
+├── plugins/
+│   ├── check_container_health.py
+│   ├── check_dnf.py
+│   ├── check_hpe_hardware.py
+│   ├── check_hpe_raid.py
+│   ├── check_librenms_validate
+│   ├── check_ssacli_disks.sh
+│   └── check_systemd_health.py
+├── tests/
+│   ├── test_check_container_health.py
+│   ├── test_check_dnf.py
+│   ├── test_check_hpe_hardware.py
+│   ├── test_check_hpe_raid.py
+│   ├── test_check_librenms_validate.sh
+│   ├── test_check_ssacli_disks.sh
+│   └── test_check_systemd_health.py
+├── .gitignore
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+└── SECURITY.md
+```
+
+## Requirements summary
 
 ### check_dnf.py
 
 - Python 3
 - DNF
-- `needs-restarting` for reboot detection
-- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+- RHEL-compatible Linux distribution
 
 ### check_librenms_validate
 
 - Bash
 - LibreNMS
-- `sudo`
-- GNU `timeout`
-- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+- `validate.php`
+- Permission to execute validation as the `librenms` user
 
 ### check_hpe_hardware.py
 
 - Python 3
+- HPE ProLiant server
 - HPE iLOrest
-- Local access to the HPE iLO Channel Interface (CHIF)
-- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
-
-Tested iLOrest version:
-
-```text
-7.3.0.0
-```
+- Local iLO CHIF access or supported iLOrest configuration
 
 ### check_ssacli_disks.sh
 
 - Bash
 - HPE Smart Array controller
-- **HPE Smart Storage Administrator CLI (`ssacli`)**
-- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
-- `sudo` when elevated privileges are required for local `ssacli` access
-
-**The `ssacli` package must be installed on the monitored server.**
+- HPE Smart Storage Administrator CLI (`ssacli`)
 
 ### check_hpe_raid.py
 
 - Python 3
 - HPE Smart Array controller
-- **HPE Smart Storage Administrator CLI (`ssacli`)**
-- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
-- `sudo` when elevated privileges are required for local `ssacli` access
-
-**The `ssacli` package must be installed on the monitored server.**
+- HPE Smart Storage Administrator CLI (`ssacli`)
 
 The plugin searches:
 
@@ -1009,9 +825,6 @@ An explicit path can be supplied with:
 check_hpe_raid.py --ssacli /custom/path/ssacli
 ```
 
-See [docs/check_hpe_raid.md](docs/check_hpe_raid.md) for complete installation
-and configuration information.
-
 ### check_systemd_health.py
 
 - Python 3
@@ -1019,14 +832,23 @@ and configuration information.
 - `systemctl`
 - `journalctl` when restart monitoring is enabled
 - Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
-- Sufficient journal access for the account running restart monitoring
+- Sufficient journal access for the account running the plugin
 
-See [docs/check_systemd_health.md](docs/check_systemd_health.md) for complete
-installation, configuration, restart monitoring, NRPE, and troubleshooting
-information.
+### check_container_health.py
+
+- Python 3
+- Docker CLI
+- Docker Engine
+- Permission to communicate with the Docker daemon
+- Nagios, Icinga, NRPE, or another Nagios-compatible monitoring system
+
+No third-party Python modules are required.
+
+Podman is not supported by `check_container_health.py` version 1.0.1.
 
 ## Documentation
 
+- [check_container_health.py documentation](docs/check_container_health.md)
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
@@ -1034,10 +856,19 @@ information.
 - [check_hpe_raid.py documentation](docs/check_hpe_raid.md)
 - [check_systemd_health.py documentation](docs/check_systemd_health.md)
 - [Changelog](CHANGELOG.md)
-- [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases)
+
+## Contributing
+
+Contributions are welcome.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+
+Please follow the repository's [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Security issues should be reported according to [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the MIT License.
 
-<!-- Branch protection workflow verified. -->
+See [LICENSE](LICENSE) for details.
