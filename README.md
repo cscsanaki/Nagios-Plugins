@@ -459,7 +459,6 @@ curl -L -o check_systemd_health.py \
 chmod +x check_systemd_health.py
 ```
 
-````markdown
 ### Download check_container_health.py
 
 Latest released version:
