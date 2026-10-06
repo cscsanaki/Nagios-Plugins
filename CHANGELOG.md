@@ -2,6 +2,165 @@
 
 All notable changes to this repository will be documented here.
 
+## check_container_health.py 1.0.1 - 2026-10-06
+
+Initial public release of `check_container_health.py`.
+
+- Added Docker container health monitoring for Nagios and Icinga.
+- Added automatic Docker runtime detection.
+- Added explicit Docker runtime selection through `--runtime docker`.
+- Added controlled UNKNOWN handling for unsupported Podman selection.
+- Added monitoring of all Docker containers on a host.
+- Added single-container monitoring through `--container`.
+- Added exact container-name selection.
+- Added full container-ID selection.
+- Added unique container-ID prefix selection.
+- Added UNKNOWN handling for ambiguous container-ID prefixes.
+- Added shell-style container include filtering through `--include`.
+- Added shell-style container exclude filtering through `--exclude`.
+- Added exclude-over-include precedence.
+- Added expected-container monitoring through `--expect`.
+- Added CRITICAL state when an explicitly selected container does not exist.
+- Added CRITICAL state when an expected container is missing.
+- Added Docker container-state monitoring.
+- Added OK handling for running containers.
+- Added WARNING state for paused containers.
+- Added WARNING state for restarting containers.
+- Added WARNING state for containers in the `created` state.
+- Added CRITICAL state for exited containers.
+- Added CRITICAL state for dead containers.
+- Added CRITICAL state for unexpected container states.
+- Added Docker exit-code reporting for exited containers.
+- Added Docker HEALTHCHECK monitoring.
+- Added OK handling for healthy containers.
+- Added OK handling for containers without a Docker HEALTHCHECK.
+- Added WARNING state for HEALTHCHECK `starting`.
+- Added CRITICAL state for HEALTHCHECK `unhealthy`.
+- Added `--no-health` option to disable Docker HEALTHCHECK evaluation.
+- Added Docker `OOMKilled` detection.
+- Added CRITICAL state for containers reported as OOM-killed even when they are currently running again.
+- Added configurable aggregate container problem thresholds through `--warning` and `--critical`.
+- Added validation requiring the WARNING threshold to be lower than the CRITICAL threshold.
+- Added optional Docker restart-count monitoring through `--check-restarts`.
+- Added Docker lifetime `RestartCount` monitoring.
+- Added configurable restart WARNING and CRITICAL thresholds.
+- Added default restart WARNING threshold of 3.
+- Added default restart CRITICAL threshold of 5.
+- Added validation requiring the restart WARNING threshold to be lower than the restart CRITICAL threshold.
+- Added optional container resource monitoring through `--check-resources`.
+- Added CPU usage collection through Docker statistics.
+- Added memory usage collection through Docker statistics.
+- Added memory-percentage collection.
+- Added container PID-count collection.
+- Added configurable CPU WARNING and CRITICAL thresholds.
+- Added support for Docker CPU percentages above 100% on multi-core systems.
+- Added configurable memory WARNING and CRITICAL percentage thresholds.
+- Added memory threshold validation for the 0-100 percent range.
+- Added detection of containers without an explicitly configured Docker memory limit.
+- Added verbose reporting when Docker statistics use a host/cgroup memory limit instead of an explicit per-container memory limit.
+- Added support for combining container health, restart, CPU, and memory monitoring in a single check.
+- Added worst-severity preservation across container state, health, restart, and resource conditions.
+- Added configurable maximum problem details through `--max-details`.
+- Added a default maximum of five problem details.
+- Added configurable Docker command timeout through `--timeout` and `-t`.
+- Added a 30-second default command timeout.
+- Added Docker daemon availability validation.
+- Added UNKNOWN handling when the Docker executable is unavailable.
+- Added UNKNOWN handling when the Docker daemon cannot be reached.
+- Added UNKNOWN handling for Docker command failures.
+- Added UNKNOWN handling for Docker command timeouts.
+- Added UNKNOWN handling for invalid Docker inspect JSON.
+- Added Nagios UNKNOWN handling for invalid command-line argument combinations.
+- Added `-v` verbose output.
+- Added `-vv` debug output.
+- Added `-V` and `--version`.
+- Added `--help`.
+- Added standard Nagios OK, WARNING, CRITICAL, and UNKNOWN exit codes.
+- Added Nagios-compatible aggregate performance data for container counts.
+- Added `containers` performance data.
+- Added `running` performance data.
+- Added `stopped` performance data.
+- Added `paused` performance data.
+- Added `restarting` performance data.
+- Added `unhealthy` performance data.
+- Added `oom_killed` performance data.
+- Added `missing` performance data.
+- Added aggregate `restarts` performance data.
+- Added per-container CPU performance data.
+- Added per-container memory-percentage performance data.
+- Added per-container memory-byte performance data.
+- Added per-container PID performance data.
+- Added WARNING and CRITICAL threshold information to resource performance data when thresholds are configured.
+- Added clean resource performance data without empty threshold fields when no resource thresholds are configured.
+- Added correct singular output for one selected container.
+- Added efficient container-state collection using a single Docker inspect operation for all discovered containers.
+- Added efficient resource collection using a single `docker stats --no-stream` operation.
+- Added JSON-based Docker inspect parsing to safely handle containers without a `Health` field.
+- Added read-only Docker monitoring design.
+- The plugin does not intentionally create, start, stop, restart, pause, unpause, or remove containers.
+- Added 109 hardware-independent automated tests.
+- Added Docker inspect JSON parser tests.
+- Added tests for containers with and without Docker HEALTHCHECK.
+- Added running-container tests.
+- Added created-container tests.
+- Added paused-container tests.
+- Added restarting-container tests.
+- Added exited-container tests.
+- Added dead-container tests.
+- Added unexpected-state tests.
+- Added OOM-killed container tests.
+- Added HEALTHCHECK healthy, starting, and unhealthy tests.
+- Added `--no-health` regression testing.
+- Added Docker restart-count OK, WARNING, and CRITICAL tests.
+- Added high restart-count tests.
+- Added Docker statistics parser tests.
+- Added CPU percentage parser tests.
+- Added CPU usage above 100% tests.
+- Added memory unit parsing tests.
+- Added memory usage and percentage tests.
+- Added CPU WARNING and CRITICAL threshold tests.
+- Added memory WARNING and CRITICAL threshold tests.
+- Added resource-statistics merge tests.
+- Added exact and wildcard include/exclude filtering tests.
+- Added include/exclude precedence tests.
+- Added exact container-name selection tests.
+- Added full container-ID selection tests.
+- Added unique container-ID prefix tests.
+- Added ambiguous container-ID prefix tests.
+- Added expected-container tests.
+- Added aggregate problem-threshold tests.
+- Added performance-data formatting tests.
+- Added argument-validation tests.
+- Added Docker runtime-detection tests.
+- Added Docker command-success tests.
+- Added Docker command-failure tests.
+- Added Docker command-timeout tests.
+- Added complete main-path OK tests.
+- Added complete main-path WARNING tests.
+- Added complete main-path CRITICAL tests.
+- Added complete main-path UNKNOWN tests.
+- Added Python syntax, CLI, and automated-test validation to GitHub Actions.
+- Added CI validation with Python 3.9, 3.11, and 3.13.
+- Added dedicated `check_container_health.py` documentation.
+- Added installation, Docker access, filtering, health monitoring, restart monitoring, resource monitoring, performance-data, NRPE, testing, and limitation documentation.
+- Documented Docker socket access as security-sensitive.
+- Documented Docker lifetime `RestartCount` semantics.
+- Documented that resource monitoring uses a point-in-time `docker stats --no-stream` snapshot.
+- Documented that version 1.0.1 supports Docker only and does not yet support Podman.
+- Validated on Docker Engine 29.8.2 / API 1.56 on Rocky Linux.
+- Validated against five running production containers without modifying their state.
+- Validated full-host container monitoring.
+- Validated single-container monitoring.
+- Validated exact and wildcard include/exclude filtering.
+- Validated expected-container monitoring.
+- Validated Docker lifetime restart-count monitoring with zero-restart production containers.
+- Validated CPU, memory, and PID collection against live Docker statistics.
+- Validated CPU WARNING and CRITICAL thresholds against live Docker statistics.
+- Validated memory WARNING and CRITICAL thresholds against live Docker statistics.
+- Validated detection and reporting of containers without explicit Docker memory limits.
+- Validated clean Nagios performance data with and without resource thresholds.
+- Validated read-only operation without creating or modifying test containers.
+
 ## check_systemd_health.py 1.0.2 - 2026-10-05
 
 Initial public release of `check_systemd_health.py`.
