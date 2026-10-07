@@ -11,7 +11,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Release |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.0 | [check_dnf.py v1.2.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-dnf-v1.2.0) |
+| `check_dnf.py` | 1.2.1 | Release pending |
 | `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
 | `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
 | `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
@@ -35,7 +35,11 @@ Features:
 - CRITICAL by default when one or more security updates are available
 - Detects whether a reboot is required
 - CRITICAL by default when a reboot is required
+- Reports the reason for a required reboot when provided by `dnf needs-restarting -r`
+- Reports updated components such as `linux-firmware` directly in Nagios output
+- Supports multiple reboot reasons
 - Reports the installed security kernel and currently running kernel
+- Preserves kernel-specific reboot information with priority over generic reboot reasons
 - Provides Nagios-compatible performance data
 - Configurable command timeout
 - Nagios-compatible OK, WARNING, CRITICAL, and UNKNOWN exit codes
@@ -57,6 +61,17 @@ Example with updates and reboot required:
 
 ```text
 DNF CRITICAL: 0 security updates, 13 non-security updates, 13 total, reboot required (security kernel 5.14.0-687.49.1.el9_8 installed, running 5.14.0-687.46.1.el9_8) | security_updates=0 non_security_updates=13 total_updates=13 reboot_required=1
+```
+
+Example with a non-kernel reboot reason:
+
+```text
+DNF CRITICAL: 0 security updates, 0 non-security updates, 0 total, reboot required (linux-firmware updated since boot) | security_updates=0 non_security_updates=0 total_updates=0 reboot_required=1
+```
+
+Version 1.2.1 extracts reboot reasons from `dnf needs-restarting -r`. If a
+security-kernel mismatch is also available, the kernel-specific reboot
+information takes priority.
 ```
 
 See [docs/check_dnf.md](docs/check_dnf.md) for detailed documentation.
@@ -783,6 +798,12 @@ Nagios-Plugins/
 - Python 3
 - DNF
 - RHEL-compatible Linux distribution
+- DNF `needs-restarting` support when reboot detection is enabled
+
+Reboot detection uses:
+
+```text
+dnf -q needs-restarting -r
 
 ### check_librenms_validate
 

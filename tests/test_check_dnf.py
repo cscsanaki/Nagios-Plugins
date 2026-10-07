@@ -1,9 +1,10 @@
 import importlib.util
+import io
 import pathlib
 import subprocess
 import unittest
+from contextlib import redirect_stdout
 from unittest.mock import patch
-
 
 PLUGIN = pathlib.Path(__file__).resolve().parents[1] / "plugins" / "check_dnf.py"
 
@@ -15,7 +16,10 @@ spec.loader.exec_module(check_dnf)
 class TestPackageParsing(unittest.TestCase):
 
     def test_no_updates(self):
-        self.assertEqual(check_dnf.DnfCheck.package_names(""), set())
+        self.assertEqual(
+            check_dnf.DnfCheck.package_names(""),
+            set(),
+        )
 
     def test_non_security_updates(self):
         output = """
@@ -56,7 +60,10 @@ package6.i686      6.0-1.el9    appstream
 Security: kernel-core-5.14.0-687.49.1.el9_8.x86_64 is an installed security update
 Security: kernel-core-5.14.0-687.46.1.el9_8.x86_64 is the currently running version
 """
-        self.assertEqual(check_dnf.DnfCheck.package_names(output), set())
+        self.assertEqual(
+            check_dnf.DnfCheck.package_names(output),
+            set(),
+        )
 
     def test_duplicate_packages_count_once(self):
         output = """
@@ -94,6 +101,64 @@ Security: kernel-core-5.14.0-687.46.1.el9_8.x86_64 is the currently running vers
         )
 
 
+class TestRebootReasonParsing(unittest.TestCase):
+
+    def test_single_reboot_reason(self):
+        output = """
+Core libraries or services have been updated since boot-up:
+  * linux-firmware
+
+Reboot is required to fully utilize these updates.
+More information: https://access.redhat.com/solutions/27943
+"""
+        self.assertEqual(
+            check_dnf.DnfCheck.reboot_reasons(output),
+            ["linux-firmware"],
+        )
+
+    def test_multiple_reboot_reasons(self):
+        output = """
+Core libraries or services have been updated since boot-up:
+  * linux-firmware
+  * systemd
+  * glibc
+
+Reboot is required to fully utilize these updates.
+"""
+        self.assertEqual(
+            check_dnf.DnfCheck.reboot_reasons(output),
+            [
+                "linux-firmware",
+                "systemd",
+                "glibc",
+            ],
+        )
+
+    def test_no_reboot_reasons(self):
+        self.assertEqual(
+            check_dnf.DnfCheck.reboot_reasons(
+                "Reboot is required to fully utilize these updates."
+            ),
+            [],
+        )
+
+    def test_empty_reboot_output(self):
+        self.assertEqual(
+            check_dnf.DnfCheck.reboot_reasons(""),
+            [],
+        )
+
+    def test_unrelated_bullet_is_ignored(self):
+        output = """
+Some unrelated output:
+  * linux-firmware
+"""
+        self.assertEqual(
+            check_dnf.DnfCheck.reboot_reasons(output),
+            [],
+        )
+
+
 class TestCommandExecution(unittest.TestCase):
 
     def make_checker(self):
@@ -111,7 +176,11 @@ class TestCommandExecution(unittest.TestCase):
             },
         )()
 
-        with patch.object(check_dnf, "find_dnf", return_value="/usr/bin/dnf"):
+        with patch.object(
+            check_dnf,
+            "find_dnf",
+            return_value="/usr/bin/dnf",
+        ):
             return check_dnf.DnfCheck(args)
 
     @patch.object(check_dnf.subprocess, "run")
@@ -123,6 +192,7 @@ class TestCommandExecution(unittest.TestCase):
         )
 
         checker = self.make_checker()
+
         rc, output = checker.run(
             ["/usr/bin/dnf", "-q", "check-update"],
             valid_codes=(0, 100),
@@ -140,6 +210,7 @@ class TestCommandExecution(unittest.TestCase):
         )
 
         checker = self.make_checker()
+
         rc, _ = checker.run(
             ["/usr/bin/dnf", "-q", "check-update"],
             valid_codes=(0, 100),
@@ -163,7 +234,10 @@ class TestCommandExecution(unittest.TestCase):
                 valid_codes=(0, 100),
             )
 
-        self.assertEqual(ctx.exception.code, check_dnf.UNKNOWN)
+        self.assertEqual(
+            ctx.exception.code,
+            check_dnf.UNKNOWN,
+        )
 
     @patch.object(check_dnf.subprocess, "run")
     def test_timeout_returns_unknown(self, mock_run):
@@ -180,7 +254,126 @@ class TestCommandExecution(unittest.TestCase):
                 valid_codes=(0, 100),
             )
 
-        self.assertEqual(ctx.exception.code, check_dnf.UNKNOWN)
+        self.assertEqual(
+            ctx.exception.code,
+            check_dnf.UNKNOWN,
+        )
+
+
+class TestRebootDetection(unittest.TestCase):
+
+    def make_checker(self, **overrides):
+        defaults = {
+            "cache_only": False,
+            "enablerepo": [],
+            "disablerepo": [],
+            "config": None,
+            "timeout": 120,
+            "verbose": 0,
+            "no_warn_on_lock": False,
+            "no_reboot_check": False,
+        }
+        defaults.update(overrides)
+
+        args = type("Args", (), defaults)()
+
+        with patch.object(
+            check_dnf,
+            "find_dnf",
+            return_value="/usr/bin/dnf",
+        ):
+            return check_dnf.DnfCheck(args)
+
+    @patch.object(check_dnf.subprocess, "run")
+    def test_reboot_not_required(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["dnf"],
+            returncode=0,
+            stdout="No core libraries or services have been updated.\n",
+        )
+
+        checker = self.make_checker()
+
+        reboot, reasons = checker.reboot_required()
+
+        self.assertFalse(reboot)
+        self.assertEqual(reasons, [])
+
+    @patch.object(check_dnf.subprocess, "run")
+    def test_reboot_required_with_linux_firmware(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["dnf"],
+            returncode=1,
+            stdout="""
+Core libraries or services have been updated since boot-up:
+  * linux-firmware
+
+Reboot is required to fully utilize these updates.
+""",
+        )
+
+        checker = self.make_checker()
+
+        reboot, reasons = checker.reboot_required()
+
+        self.assertTrue(reboot)
+        self.assertEqual(
+            reasons,
+            ["linux-firmware"],
+        )
+
+    @patch.object(check_dnf.subprocess, "run")
+    def test_reboot_required_with_multiple_reasons(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["dnf"],
+            returncode=1,
+            stdout="""
+Core libraries or services have been updated since boot-up:
+  * linux-firmware
+  * systemd
+
+Reboot is required to fully utilize these updates.
+""",
+        )
+
+        checker = self.make_checker()
+
+        reboot, reasons = checker.reboot_required()
+
+        self.assertTrue(reboot)
+        self.assertEqual(
+            reasons,
+            [
+                "linux-firmware",
+                "systemd",
+            ],
+        )
+
+    @patch.object(check_dnf.subprocess, "run")
+    def test_reboot_required_without_reason(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["dnf"],
+            returncode=1,
+            stdout="Reboot is required.\n",
+        )
+
+        checker = self.make_checker()
+
+        reboot, reasons = checker.reboot_required()
+
+        self.assertTrue(reboot)
+        self.assertEqual(reasons, [])
+
+    def test_no_reboot_check(self):
+        checker = self.make_checker(
+            no_reboot_check=True,
+        )
+
+        reboot, reasons = checker.reboot_required()
+
+        self.assertIsNone(reboot)
+        self.assertEqual(reasons, [])
+
 
 class TestNagiosStatusLogic(unittest.TestCase):
 
@@ -200,8 +393,14 @@ class TestNagiosStatusLogic(unittest.TestCase):
             "no_reboot_critical": False,
             "verbose": 0,
         }
+
         defaults.update(overrides)
-        return type("Args", (), defaults)()
+
+        return type(
+            "Args",
+            (),
+            defaults,
+        )()
 
     def make_checker(self, **overrides):
         args = self.make_args(**overrides)
@@ -218,39 +417,72 @@ class TestNagiosStatusLogic(unittest.TestCase):
         all_packages=None,
         security_packages=None,
         reboot=False,
+        reboot_reasons=None,
+        all_output="",
+        security_output="",
         **args,
     ):
         checker = self.make_checker(**args)
 
-        all_packages = set(all_packages or [])
-        security_packages = set(security_packages or [])
+        all_packages = set(
+            all_packages or []
+        )
 
-        all_output = ""
-        security_output = ""
+        security_packages = set(
+            security_packages or []
+        )
+
+        reboot_reasons = list(
+            reboot_reasons or []
+        )
+
+        stdout = io.StringIO()
 
         with patch.object(
             checker,
             "check_update",
             side_effect=[
-                (all_packages, all_output),
-                (security_packages, security_output),
+                (
+                    all_packages,
+                    all_output,
+                ),
+                (
+                    security_packages,
+                    security_output,
+                ),
             ],
         ), patch.object(
             checker,
             "reboot_required",
-            return_value=reboot,
-        ), self.assertRaises(SystemExit) as ctx:
+            return_value=(
+                reboot,
+                reboot_reasons,
+            ),
+        ), redirect_stdout(stdout), self.assertRaises(
+            SystemExit
+        ) as ctx:
             checker.execute()
 
-        return ctx.exception.code
+        return (
+            ctx.exception.code,
+            stdout.getvalue().strip(),
+        )
 
     def test_no_updates_no_reboot_is_ok(self):
-        status = self.run_execute()
+        status, output = self.run_execute()
 
-        self.assertEqual(status, check_dnf.OK)
+        self.assertEqual(
+            status,
+            check_dnf.OK,
+        )
+
+        self.assertIn(
+            "reboot not required",
+            output,
+        )
 
     def test_non_security_updates_are_ok_by_default(self):
-        status = self.run_execute(
+        status, _ = self.run_execute(
             all_packages={
                 "podman.x86_64",
                 "rsyslog.x86_64",
@@ -258,10 +490,13 @@ class TestNagiosStatusLogic(unittest.TestCase):
             }
         )
 
-        self.assertEqual(status, check_dnf.OK)
+        self.assertEqual(
+            status,
+            check_dnf.OK,
+        )
 
     def test_non_security_updates_can_warn(self):
-        status = self.run_execute(
+        status, _ = self.run_execute(
             all_packages={
                 "podman.x86_64",
                 "rsyslog.x86_64",
@@ -269,72 +504,270 @@ class TestNagiosStatusLogic(unittest.TestCase):
             warn_on_any_update=True,
         )
 
-        self.assertEqual(status, check_dnf.WARNING)
-
-    def test_security_update_is_critical(self):
-        status = self.run_execute(
-            all_packages={"podman.x86_64"},
-            security_packages={"podman.x86_64"},
+        self.assertEqual(
+            status,
+            check_dnf.WARNING,
         )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+    def test_security_update_is_critical(self):
+        status, _ = self.run_execute(
+            all_packages={
+                "podman.x86_64",
+            },
+            security_packages={
+                "podman.x86_64",
+            },
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
 
     def test_security_and_non_security_updates_are_critical(self):
-        status = self.run_execute(
+        status, _ = self.run_execute(
             all_packages={
                 "podman.x86_64",
                 "rsyslog.x86_64",
             },
-            security_packages={"podman.x86_64"},
+            security_packages={
+                "podman.x86_64",
+            },
         )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
 
     def test_reboot_required_is_critical(self):
-        status = self.run_execute(reboot=True)
+        status, _ = self.run_execute(
+            reboot=True,
+        )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
+    def test_reboot_reason_is_in_output(self):
+        status, output = self.run_execute(
+            reboot=True,
+            reboot_reasons=[
+                "linux-firmware",
+            ],
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
+        self.assertIn(
+            "reboot required "
+            "(linux-firmware updated since boot)",
+            output,
+        )
+
+    def test_multiple_reboot_reasons_are_in_output(self):
+        status, output = self.run_execute(
+            reboot=True,
+            reboot_reasons=[
+                "linux-firmware",
+                "systemd",
+            ],
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
+        self.assertIn(
+            "reboot required "
+            "(linux-firmware, systemd updated since boot)",
+            output,
+        )
+
+    def test_reboot_without_reason_uses_generic_output(self):
+        status, output = self.run_execute(
+            reboot=True,
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
+        self.assertIn(
+            "reboot required",
+            output,
+        )
+
+        self.assertNotIn(
+            "updated since boot",
+            output,
+        )
+
+    def test_kernel_status_takes_priority_over_reboot_reason(self):
+        security_output = """
+Security: kernel-core-5.14.0-687.49.1.el9_8.x86_64 is an installed security update
+Security: kernel-core-5.14.0-687.46.1.el9_8.x86_64 is the currently running version
+"""
+
+        status, output = self.run_execute(
+            reboot=True,
+            reboot_reasons=[
+                "linux-firmware",
+            ],
+            security_output=security_output,
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
+        self.assertIn(
+            "security kernel "
+            "5.14.0-687.49.1.el9_8 installed, "
+            "running 5.14.0-687.46.1.el9_8",
+            output,
+        )
+
+        self.assertNotIn(
+            "linux-firmware updated since boot",
+            output,
+        )
 
     def test_reboot_can_be_non_critical(self):
-        status = self.run_execute(
+        status, output = self.run_execute(
             reboot=True,
+            reboot_reasons=[
+                "linux-firmware",
+            ],
             no_reboot_critical=True,
         )
 
-        self.assertEqual(status, check_dnf.OK)
+        self.assertEqual(
+            status,
+            check_dnf.OK,
+        )
+
+        self.assertIn(
+            "reboot required "
+            "(linux-firmware updated since boot)",
+            output,
+        )
+
+    def test_reboot_status_unavailable(self):
+        status, output = self.run_execute(
+            reboot=None,
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.OK,
+        )
+
+        self.assertIn(
+            "reboot status unavailable",
+            output,
+        )
+
+    def test_no_reboot_check_omits_reboot_status(self):
+        status, output = self.run_execute(
+            reboot=None,
+            no_reboot_check=True,
+        )
+
+        self.assertEqual(
+            status,
+            check_dnf.OK,
+        )
+
+        self.assertNotIn(
+            "reboot status",
+            output,
+        )
+
+        self.assertNotIn(
+            "reboot_required=",
+            output,
+        )
+
+    def test_reboot_perfdata_is_one(self):
+        _, output = self.run_execute(
+            reboot=True,
+            reboot_reasons=[
+                "linux-firmware",
+            ],
+        )
+
+        self.assertIn(
+            "reboot_required=1",
+            output,
+        )
+
+    def test_reboot_perfdata_is_zero(self):
+        _, output = self.run_execute(
+            reboot=False,
+        )
+
+        self.assertIn(
+            "reboot_required=0",
+            output,
+        )
 
     def test_all_updates_makes_normal_update_critical(self):
-        status = self.run_execute(
-            all_packages={"rsyslog.x86_64"},
+        status, _ = self.run_execute(
+            all_packages={
+                "rsyslog.x86_64",
+            },
             all_updates=True,
         )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
 
     def test_security_critical_takes_priority_over_warning(self):
-        status = self.run_execute(
+        status, _ = self.run_execute(
             all_packages={
                 "podman.x86_64",
                 "rsyslog.x86_64",
             },
-            security_packages={"podman.x86_64"},
+            security_packages={
+                "podman.x86_64",
+            },
             warn_on_any_update=True,
         )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
 
     def test_custom_security_warning_threshold(self):
-        status = self.run_execute(
-            all_packages={"pkg1.x86_64"},
-            security_packages={"pkg1.x86_64"},
+        status, _ = self.run_execute(
+            all_packages={
+                "pkg1.x86_64",
+            },
+            security_packages={
+                "pkg1.x86_64",
+            },
             warning_security=1,
             critical_security=2,
         )
 
-        self.assertEqual(status, check_dnf.WARNING)
+        self.assertEqual(
+            status,
+            check_dnf.WARNING,
+        )
 
     def test_custom_security_critical_threshold(self):
-        status = self.run_execute(
+        status, _ = self.run_execute(
             all_packages={
                 "pkg1.x86_64",
                 "pkg2.x86_64",
@@ -347,7 +780,11 @@ class TestNagiosStatusLogic(unittest.TestCase):
             critical_security=2,
         )
 
-        self.assertEqual(status, check_dnf.CRITICAL)
+        self.assertEqual(
+            status,
+            check_dnf.CRITICAL,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

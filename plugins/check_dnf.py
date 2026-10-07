@@ -23,7 +23,8 @@ import subprocess
 import sys
 from typing import List, Optional, Sequence, Tuple
 
-__version__ = "1.2.0"
+
+__version__ = "1.2.1"
 
 OK = 0
 WARNING = 1
@@ -62,8 +63,10 @@ def clean_message(text: str, max_len: int = 600) -> str:
     """Turn multiline command output into a compact Nagios-friendly message."""
     text = " ".join(line.strip() for line in text.splitlines() if line.strip())
     text = re.sub(r"\s+", " ", text).strip()
+
     if len(text) > max_len:
         text = text[: max_len - 3] + "..."
+
     return text
 
 
@@ -93,12 +96,17 @@ class DnfCheck:
 
         return args
 
-    def run(self, command: Sequence[str], valid_codes: Sequence[int] = (0,)) -> Tuple[int, str]:
+    def run(
+        self,
+        command: Sequence[str],
+        valid_codes: Sequence[int] = (0,),
+    ) -> Tuple[int, str]:
         env = os.environ.copy()
         env["LANG"] = "C"
         env["LC_ALL"] = "C"
 
         cmd = list(command)
+
         self.debug(2, "running command: " + " ".join(cmd))
 
         try:
@@ -117,23 +125,41 @@ class DnfCheck:
         except subprocess.TimeoutExpired:
             finish(
                 UNKNOWN,
-                f"command exceeded timeout ({self.args.timeout}s): {' '.join(cmd)}",
+                f"command exceeded timeout ({self.args.timeout}s): "
+                f"{' '.join(cmd)}",
             )
         except OSError as exc:
-            finish(UNKNOWN, f"failed to execute {cmd[0]}: {exc}")
+            finish(
+                UNKNOWN,
+                f"failed to execute {cmd[0]}: {exc}",
+            )
 
         output = result.stdout or ""
-        self.debug(3, f"return code: {result.returncode}\n{output.rstrip()}")
+
+        self.debug(
+            3,
+            f"return code: {result.returncode}\n"
+            f"{output.rstrip()}",
+        )
 
         if result.returncode not in valid_codes:
             low = output.lower()
 
-            if "another app is currently holding the dnf lock" in low or \
-               "another copy is running" in low or \
-               ("lock" in low and "dnf" in low):
+            if (
+                "another app is currently holding the dnf lock" in low
+                or "another copy is running" in low
+                or ("lock" in low and "dnf" in low)
+            ):
                 if self.args.no_warn_on_lock:
-                    finish(OK, "package manager is locked by another process")
-                finish(WARNING, "package manager is locked by another process")
+                    finish(
+                        OK,
+                        "package manager is locked by another process",
+                    )
+
+                finish(
+                    WARNING,
+                    "package manager is locked by another process",
+                )
 
             finish(
                 UNKNOWN,
@@ -173,10 +199,12 @@ class DnfCheck:
 
             if not line:
                 continue
+
             if line.lower().startswith(ignored_prefixes):
                 continue
 
             match = pkg_re.match(raw_line)
+
             if match:
                 packages.add(match.group("pkg"))
 
@@ -191,44 +219,111 @@ class DnfCheck:
 
         cmd.append("check-update")
 
-        _, output = self.run(cmd, valid_codes=(0, 100))
+        _, output = self.run(
+            cmd,
+            valid_codes=(0, 100),
+        )
+
         return self.package_names(output), output
 
     @staticmethod
-    def kernel_security_status(output: str) -> Optional[Tuple[str, str]]:
-        """Return (installed_security_kernel, running_kernel) when DNF reports both."""
+    def kernel_security_status(
+        output: str,
+    ) -> Optional[Tuple[str, str]]:
+        """
+        Return (installed_security_kernel, running_kernel)
+        when DNF reports both.
+        """
         installed = None
         running = None
+
         installed_re = re.compile(
-            r"^Security:\s+kernel-core-(.+)\s+is an installed security update$"
+            r"^Security:\s+kernel-core-(.+)\s+"
+            r"is an installed security update$"
         )
+
         running_re = re.compile(
-            r"^Security:\s+kernel-core-(.+)\s+is the currently running version$"
+            r"^Security:\s+kernel-core-(.+)\s+"
+            r"is the currently running version$"
         )
+
         for raw_line in output.splitlines():
             line = raw_line.strip()
+
             match = installed_re.match(line)
+
             if match:
                 installed = match.group(1)
                 continue
+
             match = running_re.match(line)
+
             if match:
                 running = match.group(1)
+
         if installed and running:
             return installed, running
+
         return None
 
-    def reboot_required(self) -> Optional[bool]:
+    @staticmethod
+    def reboot_reasons(output: str) -> List[str]:
+        """
+        Extract packages or services reported by
+        `dnf needs-restarting -r` as requiring a reboot.
+
+        Example input:
+
+            Core libraries or services have been updated since boot-up:
+              * linux-firmware
+
+            Reboot is required to fully utilize these updates.
+
+        Returns:
+            ["linux-firmware"]
+        """
+        reasons: List[str] = []
+        capture = False
+
+        for raw_line in output.splitlines():
+            line = raw_line.strip()
+
+            if line.lower().startswith(
+                "core libraries or services have been updated "
+                "since boot-up:"
+            ):
+                capture = True
+                continue
+
+            if not capture:
+                continue
+
+            if line.startswith("*"):
+                reason = line.lstrip("*").strip()
+
+                if reason:
+                    reasons.append(reason)
+
+                continue
+
+            if line:
+                break
+
+        return reasons
+
+    def reboot_required(
+        self,
+    ) -> Tuple[Optional[bool], List[str]]:
         """
         Check whether a reboot is required.
 
         Returns:
-            True  - reboot required
-            False - reboot not required
-            None  - check unavailable/unsupported
+            (True, reasons) - reboot required
+            (False, [])     - reboot not required
+            (None, [])      - check unavailable/unsupported
         """
         if self.args.no_reboot_check:
-            return None
+            return None, []
 
         candidates = [
             [self.dnf, "-q", "needs-restarting", "-r"],
@@ -236,14 +331,24 @@ class DnfCheck:
         ]
 
         for cmd in candidates:
-            if cmd[0].startswith("/") and not os.path.exists(cmd[0]):
+            # self.dnf has already been resolved by find_dnf().
+            # Only check existence for the optional standalone
+            # needs-restarting fallback.
+            if (
+                cmd[0] != self.dnf
+                and cmd[0].startswith("/")
+                and not os.path.exists(cmd[0])
+            ):
                 continue
 
             env = os.environ.copy()
             env["LANG"] = "C"
             env["LC_ALL"] = "C"
 
-            self.debug(2, "running reboot check: " + " ".join(cmd))
+            self.debug(
+                2,
+                "running reboot check: " + " ".join(cmd),
+            )
 
             try:
                 result = subprocess.run(
@@ -258,94 +363,190 @@ class DnfCheck:
                     timeout=self.args.timeout,
                     check=False,
                 )
-            except (subprocess.TimeoutExpired, OSError) as exc:
-                self.debug(1, f"reboot check failed: {exc}")
+            except (
+                subprocess.TimeoutExpired,
+                OSError,
+            ) as exc:
+                self.debug(
+                    1,
+                    f"reboot check failed: {exc}",
+                )
                 continue
+
+            output = result.stdout or ""
 
             self.debug(
                 3,
-                f"reboot check return code: {result.returncode}\n"
-                f"{(result.stdout or '').rstrip()}",
+                f"reboot check return code: "
+                f"{result.returncode}\n"
+                f"{output.rstrip()}",
             )
 
             # needs-restarting -r convention:
-            # 0 = reboot not required, 1 = reboot required.
+            #   0 = reboot not required
+            #   1 = reboot required
             if result.returncode == 0:
-                return False
+                return False, []
+
             if result.returncode == 1:
-                return True
+                return True, self.reboot_reasons(output)
 
             self.debug(
                 1,
                 "reboot check unavailable: "
-                + clean_message(result.stdout or f"exit code {result.returncode}"),
+                + clean_message(
+                    output
+                    or f"exit code {result.returncode}"
+                ),
             )
 
-        return None
+        return None, []
 
     def execute(self) -> None:
-        all_packages, all_output = self.check_update(security_only=False)
-        security_packages, security_output = self.check_update(security_only=True)
-        kernel_status = self.kernel_security_status(
-            security_output if security_output.strip() else all_output
+        all_packages, all_output = self.check_update(
+            security_only=False
         )
 
-        # Defensive intersection: a package reported by --security should also
-        # be present in the full update set. Keep it security even if DNF output
-        # differs unexpectedly, while preventing a negative non-security count.
+        security_packages, security_output = self.check_update(
+            security_only=True
+        )
+
+        kernel_status = self.kernel_security_status(
+            security_output
+            if security_output.strip()
+            else all_output
+        )
+
+        # Defensive intersection: a package reported by --security
+        # should also be present in the full update set. Keep it
+        # security even if DNF output differs unexpectedly, while
+        # preventing a negative non-security count.
         total = len(all_packages)
         security = len(security_packages)
 
         if security > total:
             self.debug(
                 1,
-                "security package count is greater than total package count; "
-                "using union for total",
+                "security package count is greater than total "
+                "package count; using union for total",
             )
-            total = len(all_packages | security_packages)
 
-        non_security = max(total - security, 0)
+            total = len(
+                all_packages | security_packages
+            )
 
-        reboot = self.reboot_required()
+        non_security = max(
+            total - security,
+            0,
+        )
+
+        reboot, reboot_reasons = self.reboot_required()
 
         if self.args.all_updates:
-            status = CRITICAL if total > 0 else OK
+            status = (
+                CRITICAL
+                if total > 0
+                else OK
+            )
+
         elif security >= self.args.critical_security:
             status = CRITICAL
-        elif self.args.warning_security > 0 and security >= self.args.warning_security:
+
+        elif (
+            self.args.warning_security > 0
+            and security >= self.args.warning_security
+        ):
             status = WARNING
-        elif self.args.warn_on_any_update and non_security > 0:
+
+        elif (
+            self.args.warn_on_any_update
+            and non_security > 0
+        ):
             status = WARNING
+
         else:
             status = OK
 
-        if reboot is True and not self.args.no_reboot_critical:
+        if (
+            reboot is True
+            and not self.args.no_reboot_critical
+        ):
             status = CRITICAL
 
         parts = [
-            f"{security} security update{'s' if security != 1 else ''}",
-            f"{non_security} non-security update{'s' if non_security != 1 else ''}",
+            (
+                f"{security} security "
+                f"update{'s' if security != 1 else ''}"
+            ),
+            (
+                f"{non_security} non-security "
+                f"update{'s' if non_security != 1 else ''}"
+            ),
             f"{total} total",
         ]
 
         if reboot is True:
             if kernel_status:
-                installed_kernel, running_kernel = kernel_status
+                (
+                    installed_kernel,
+                    running_kernel,
+                ) = kernel_status
+
                 kernel_arch_re = re.compile(
-                    r"\.(?:x86_64|aarch64|ppc64le|s390x|i[3-6]86)$"
+                    r"\.(?:x86_64|aarch64|ppc64le|"
+                    r"s390x|i[3-6]86)$"
                 )
-                installed_kernel_display = kernel_arch_re.sub("", installed_kernel)
-                running_kernel_display = kernel_arch_re.sub("", running_kernel)
+
+                installed_kernel_display = (
+                    kernel_arch_re.sub(
+                        "",
+                        installed_kernel,
+                    )
+                )
+
+                running_kernel_display = (
+                    kernel_arch_re.sub(
+                        "",
+                        running_kernel,
+                    )
+                )
+
                 parts.append(
-                    f"reboot required (security kernel {installed_kernel_display} installed, "
+                    "reboot required "
+                    f"(security kernel "
+                    f"{installed_kernel_display} installed, "
                     f"running {running_kernel_display})"
                 )
+
+            elif reboot_reasons:
+                if len(reboot_reasons) == 1:
+                    parts.append(
+                        "reboot required "
+                        f"({reboot_reasons[0]} "
+                        "updated since boot)"
+                    )
+
+                else:
+                    parts.append(
+                        "reboot required ("
+                        + ", ".join(reboot_reasons)
+                        + " updated since boot)"
+                    )
+
             else:
-                parts.append("reboot required")
+                parts.append(
+                    "reboot required"
+                )
+
         elif reboot is False:
-            parts.append("reboot not required")
+            parts.append(
+                "reboot not required"
+            )
+
         elif not self.args.no_reboot_check:
-            parts.append("reboot status unavailable")
+            parts.append(
+                "reboot status unavailable"
+            )
 
         perfdata = (
             f"security_updates={security} "
@@ -354,101 +555,158 @@ class DnfCheck:
         )
 
         if reboot is not None:
-            perfdata += f" reboot_required={1 if reboot else 0}"
+            perfdata += (
+                f" reboot_required="
+                f"{1 if reboot else 0}"
+            )
 
-        finish(status, ", ".join(parts) + " | " + perfdata)
+        finish(
+            status,
+            ", ".join(parts)
+            + " | "
+            + perfdata,
+        )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Nagios/Icinga plugin for checking DNF package updates"
+        description=(
+            "Nagios/Icinga plugin for checking "
+            "DNF package updates"
+        )
     )
 
     parser.add_argument(
         "-A",
         "--all-updates",
         action="store_true",
-        help="return CRITICAL if any package update is available",
+        help=(
+            "return CRITICAL if any package "
+            "update is available"
+        ),
     )
+
     parser.add_argument(
         "-W",
         "--warn-on-any-update",
         action="store_true",
-        help="return WARNING for non-security updates if no security CRITICAL exists",
+        help=(
+            "return WARNING for non-security updates "
+            "if no security CRITICAL exists"
+        ),
     )
+
     parser.add_argument(
         "-C",
         "--cache-only",
         action="store_true",
         help="use cached repository metadata only",
     )
+
     parser.add_argument(
         "-e",
         "--enablerepo",
         action="append",
         default=[],
         metavar="REPO",
-        help="enable repository; may be specified multiple times",
+        help=(
+            "enable repository; may be specified "
+            "multiple times"
+        ),
     )
+
     parser.add_argument(
         "-d",
         "--disablerepo",
         action="append",
         default=[],
         metavar="REPO",
-        help="disable repository; may be specified multiple times",
+        help=(
+            "disable repository; may be specified "
+            "multiple times"
+        ),
     )
+
     parser.add_argument(
         "-c",
         "--config",
         metavar="FILE",
-        help="use an alternative DNF configuration file",
+        help=(
+            "use an alternative DNF "
+            "configuration file"
+        ),
     )
+
     parser.add_argument(
         "-N",
         "--no-warn-on-lock",
         action="store_true",
-        help="return OK instead of WARNING if DNF is locked",
+        help=(
+            "return OK instead of WARNING "
+            "if DNF is locked"
+        ),
     )
+
     parser.add_argument(
         "-t",
         "--timeout",
         type=int,
         default=DEFAULT_TIMEOUT,
         metavar="SECONDS",
-        help=f"command timeout, default: {DEFAULT_TIMEOUT}",
+        help=(
+            f"command timeout, default: "
+            f"{DEFAULT_TIMEOUT}"
+        ),
     )
+
     parser.add_argument(
         "--warning-security",
         type=int,
         default=0,
         metavar="N",
-        help="WARNING at N security updates; 0 disables WARNING threshold",
+        help=(
+            "WARNING at N security updates; "
+            "0 disables WARNING threshold"
+        ),
     )
+
     parser.add_argument(
         "--critical-security",
         type=int,
         default=1,
         metavar="N",
-        help="CRITICAL at N security updates; default: 1",
+        help=(
+            "CRITICAL at N security updates; "
+            "default: 1"
+        ),
     )
+
     parser.add_argument(
         "--no-reboot-check",
         action="store_true",
         help="disable the reboot-required check",
     )
+
     parser.add_argument(
         "--no-reboot-critical",
         action="store_true",
-        help="report reboot requirement without changing status to CRITICAL",
+        help=(
+            "report reboot requirement without "
+            "changing status to CRITICAL"
+        ),
     )
+
     parser.add_argument(
         "-v",
         "--verbose",
         action="count",
         default=0,
-        help="increase debug output; may be specified multiple times",
+        help=(
+            "increase debug output; may be "
+            "specified multiple times"
+        ),
     )
+
     parser.add_argument(
         "-V",
         "--version",
@@ -459,20 +717,29 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
 
     if not 1 <= args.timeout <= 3600:
-        parser.error("--timeout must be between 1 and 3600 seconds")
+        parser.error(
+            "--timeout must be between "
+            "1 and 3600 seconds"
+        )
 
     if args.warning_security < 0:
-        parser.error("--warning-security cannot be negative")
+        parser.error(
+            "--warning-security cannot be negative"
+        )
 
     if args.critical_security < 1:
-        parser.error("--critical-security must be at least 1")
+        parser.error(
+            "--critical-security must be at least 1"
+        )
 
     if (
         args.warning_security > 0
-        and args.warning_security >= args.critical_security
+        and args.warning_security
+        >= args.critical_security
     ):
         parser.error(
-            "--warning-security must be lower than --critical-security"
+            "--warning-security must be lower "
+            "than --critical-security"
         )
 
     return args
@@ -487,4 +754,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        finish(UNKNOWN, "interrupted")
+        finish(
+            UNKNOWN,
+            "interrupted",
+        )

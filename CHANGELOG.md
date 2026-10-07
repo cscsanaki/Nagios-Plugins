@@ -2,6 +2,41 @@
 
 All notable changes to this repository will be documented here.
 
+## check_dnf.py 1.2.1 - 2026-10-07
+
+- Added reboot reason reporting from `dnf needs-restarting -r`.
+- Added extraction of updated components that require a reboot.
+- Added informative reboot output for non-kernel reboot conditions.
+- Added support for single reboot reasons, for example:
+
+  ```text
+  reboot required (linux-firmware updated since boot)
+  ```
+
+- Added support for multiple reboot reasons, for example:
+
+  ```text
+  reboot required (linux-firmware, systemd updated since boot)
+  ```
+
+- Preserved the generic `reboot required` fallback when no specific reason can be extracted.
+- Preserved existing security-kernel versus running-kernel reporting.
+- Kernel-specific reboot information takes priority over component reboot reasons.
+- Fixed reboot-check executable handling for the already resolved DNF executable.
+- Retained `/usr/bin/needs-restarting` as an optional fallback.
+- Preserved `--no-reboot-check` and `--no-reboot-critical` behavior.
+- Preserved `reboot_required=0|1` Nagios performance data.
+- Expanded the `check_dnf.py` regression test suite to 40 tests.
+- Added regression tests for single and multiple reboot reasons, generic fallback, kernel-message priority, unavailable reboot status, and reboot performance data.
+- Validated all 40 tests with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+- Validated on Rocky Linux 9 with a real `linux-firmware` reboot-required condition.
+
+Example real-world output:
+
+```text
+DNF CRITICAL: 0 security updates, 0 non-security updates, 0 total, reboot required (linux-firmware updated since boot) | security_updates=0 non_security_updates=0 total_updates=0 reboot_required=1
+```
+
 ## check_container_health.py 1.0.1 - 2026-10-06
 
 Initial public release of `check_container_health.py`.
