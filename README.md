@@ -654,6 +654,11 @@ The repository contains automated tests for the plugins.
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
+The `check_dnf.py` 1.2.1 test suite contains **40 automated tests** covering
+package parsing, security updates, reboot detection, reboot reasons,
+kernel-specific reboot reporting, Nagios status handling, performance data,
+command failures, and timeouts.
+
 ### check_librenms_validate
 
 ```bash
