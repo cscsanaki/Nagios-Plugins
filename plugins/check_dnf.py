@@ -331,8 +331,12 @@ class DnfCheck:
         ]
 
         for cmd in candidates:
+            # self.dnf has already been resolved by find_dnf().
+            # Only check existence for the optional standalone
+            # needs-restarting fallback.
             if (
-                cmd[0].startswith("/")
+                cmd[0] != self.dnf
+                and cmd[0].startswith("/")
                 and not os.path.exists(cmd[0])
             ):
                 continue
