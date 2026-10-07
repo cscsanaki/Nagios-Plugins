@@ -72,7 +72,6 @@ DNF CRITICAL: 0 security updates, 0 non-security updates, 0 total, reboot requir
 Version 1.2.1 extracts reboot reasons from `dnf needs-restarting -r`. If a
 security-kernel mismatch is also available, the kernel-specific reboot
 information takes priority.
-```
 
 See [docs/check_dnf.md](docs/check_dnf.md) for detailed documentation.
 
