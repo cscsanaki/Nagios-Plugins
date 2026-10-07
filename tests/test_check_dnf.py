@@ -6,7 +6,7 @@ import unittest
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
-PLUGIN = pathlib.Path("/usr/lib64/nagios/plugins/check_dnf.py")
+PLUGIN = pathlib.Path(__file__).resolve().parents[1] / "plugins" / "check_dnf.py"
 
 spec = importlib.util.spec_from_file_location("check_dnf", PLUGIN)
 check_dnf = importlib.util.module_from_spec(spec)
