@@ -47,7 +47,7 @@ passed=0; failed=0
 check() {
   local title=$1 expected=$2 pattern=$3; shift 3
   local output rc
-  output=$("$PLUGIN" "$@" 2>&1); rc=$?
+  output=$(bash "$PLUGIN" "$@" 2>&1); rc=$?
   if [[ $rc -eq $expected && $output == *"$pattern"* ]]; then
     printf 'PASS %s\n' "$title"; ((passed+=1))
   else
