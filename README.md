@@ -18,6 +18,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
 | `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
+| `check_kvm_disk.sh` | 1.0.1 | Pending first release |
 
 Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
@@ -405,6 +406,44 @@ The plugin performs read-only Docker queries and does not intentionally create, 
 
 See [docs/check_container_health.md](docs/check_container_health.md) for detailed documentation.
 
+### check_kvm_disk.sh
+
+Bash Nagios/Icinga plugin for monitoring filesystem free space inside KVM guests using libvirt and QEMU Guest Agent, without SSH access.
+
+Current version: **1.0.1**
+
+Features:
+
+- Checks an individual filesystem mount point inside a running KVM guest
+- Configurable WARNING and CRITICAL thresholds based on **free space**
+- Accepts thresholds with or without a `%` suffix
+- Executes `df -P -k` through QEMU Guest Agent `guest-exec`
+- Polls `guest-exec-status` with a configurable timeout
+- Parses JSON responses using `jq` and decodes Base64 output
+- Reports used, free, and total capacity with Nagios performance data
+- Includes free-space WARNING/CRITICAL performance ranges
+- Standard OK, WARNING, CRITICAL, and UNKNOWN exit codes
+- Verbose diagnostics and NRPE integration
+- 20 mock-based Bash regression tests, without requiring a real VM
+
+Example:
+
+```bash
+./check_kvm_disk.sh -d example-vm -p / -w 20% -c 10%
+```
+
+Illustrative output:
+
+```text
+DISK OK: VM=example-vm mount=/, 40% used, 60% free (60.00 GiB free / 100.00 GiB total, 40.00 GiB used) | '/_free_pct'=60%;@0:20;@0:10;0;100 '/_used_pct'=40%
+```
+
+The guest name and disk figures above are examples, not production identifiers or measurements.
+
+See [docs/check_kvm_disk.md](docs/check_kvm_disk.md) for detailed documentation.
+
+---
+
 ## Download
 
 ### Download check_dnf.py
@@ -486,6 +525,19 @@ chmod +x check_container_health.py
 
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
+### Download check_kvm_disk.sh
+
+Development branch (first public release pending):
+
+```bash
+curl -fL -o check_kvm_disk.sh \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/add-kvm-disk-plugin/plugins/check_kvm_disk.sh
+
+chmod +x check_kvm_disk.sh
+```
+
+After publication, this download URL will be updated to the versioned `check-kvm-disk-v1.0.1` release tag.
+
 ## Installation
 
 ### RHEL / Rocky Linux
@@ -563,6 +615,15 @@ sudo -u nrpe docker ps
 
 Docker socket access is security-sensitive and should be granted carefully.
 
+### check_kvm_disk.sh
+
+```bash
+sudo cp check_kvm_disk.sh /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_kvm_disk.sh
+```
+
+Requires `virsh`, `jq`, `base64`, libvirt access, and a functioning QEMU Guest Agent in the guest. Access to guest command execution is security-sensitive.
+
 ## NRPE examples
 
 ### DNF
@@ -631,6 +692,18 @@ Specific container monitoring:
 
 ```text
 command[check_container_grafana]=/usr/lib64/nagios/plugins/check_container_health.py --container kof-grafana --check-restarts --check-resources --cpu-warning 80 --cpu-critical 95 --memory-warning 80 --memory-critical 90
+```
+
+### KVM guest disk monitoring
+
+```text
+command[check_kvm_disk_root]=/usr/lib64/nagios/plugins/check_kvm_disk.sh -d example-vm -p / -w 20% -c 10%
+```
+
+Remote invocation from a Nagios server:
+
+```bash
+/usr/lib64/nagios/plugins/check_nrpe -H kvm-host.example.com -c check_kvm_disk_root
 ```
 
 ## Nagios exit codes
@@ -725,6 +798,14 @@ The tests cover, among other things:
 - Docker command timeouts
 - Complete OK/WARNING/CRITICAL/UNKNOWN execution paths
 
+### check_kvm_disk.sh
+
+```bash
+bash tests/test_check_kvm_disk.sh
+```
+
+The KVM disk plugin includes **20 mock-based tests** covering CLI validation, threshold boundaries, performance data, guest-agent failures, missing mount points, invalid Base64 output, and timeouts. No real KVM guest is required.
+
 ## Continuous integration
 
 GitHub Actions validates the repository with:
@@ -753,6 +834,16 @@ Run container health plugin tests
 
 The container test suite contains 109 tests and does not require access to a live Docker daemon.
 
+For `check_kvm_disk.sh`, CI performs:
+
+```text
+Check KVM disk plugin shell syntax
+Check KVM disk plugin CLI
+Run KVM disk plugin tests
+```
+
+The Bash tests run in each existing Python matrix job and do not require libvirt or a running VM.
+
 ## Repository layout
 
 ```text
@@ -766,6 +857,7 @@ Nagios-Plugins/
 │   ├── check_container_health.md
 │   ├── check_dnf.md
 │   ├── check_hpe_hardware.md
+│   ├── check_kvm_disk.md
 │   ├── check_hpe_raid.md
 │   ├── check_librenms_validate.md
 │   ├── check_ssacli_disks.md
@@ -774,6 +866,7 @@ Nagios-Plugins/
 │   ├── check_container_health.py
 │   ├── check_dnf.py
 │   ├── check_hpe_hardware.py
+│   ├── check_kvm_disk.sh
 │   ├── check_hpe_raid.py
 │   ├── check_librenms_validate
 │   ├── check_ssacli_disks.sh
@@ -782,6 +875,7 @@ Nagios-Plugins/
 │   ├── test_check_container_health.py
 │   ├── test_check_dnf.py
 │   ├── test_check_hpe_hardware.py
+│   ├── test_check_kvm_disk.sh
 │   ├── test_check_hpe_raid.py
 │   ├── test_check_librenms_validate.sh
 │   ├── test_check_ssacli_disks.sh
@@ -808,6 +902,7 @@ Reboot detection uses:
 
 ```text
 dnf -q needs-restarting -r
+```
 
 ### check_librenms_validate
 
@@ -871,9 +966,22 @@ No third-party Python modules are required.
 
 Podman is not supported by `check_container_health.py` version 1.0.1.
 
+### check_kvm_disk.sh
+
+- Bash
+- KVM/QEMU and libvirt
+- `virsh`, `jq`, and `base64`
+- Running QEMU Guest Agent with `guest-exec` and `guest-exec-status` support
+- `/bin/df` inside the guest
+- Permission to query the guest through libvirt
+- Nagios, Icinga, Centreon, or NRPE for monitoring integration
+
+QEMU Guest Agent command execution requires carefully controlled privileges.
+
 ## Documentation
 
 - [check_container_health.py documentation](docs/check_container_health.md)
+- [check_kvm_disk.sh documentation](docs/check_kvm_disk.md)
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)

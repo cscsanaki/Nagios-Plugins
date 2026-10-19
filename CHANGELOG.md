@@ -2,6 +2,46 @@
 
 All notable changes to this repository will be documented here.
 
+## check_kvm_disk.sh 1.0.1 - 2026-10-19
+
+Initial public release of `check_kvm_disk.sh`.
+
+- Added KVM guest filesystem disk usage monitoring for Nagios, Icinga, and Centreon.
+- Added filesystem monitoring through libvirt and QEMU Guest Agent.
+- Added guest filesystem queries without requiring SSH access to the virtual machine.
+- Added virtual machine selection through `-d`.
+- Added filesystem mount-point selection through `-p`.
+- Added configurable free-space WARNING and CRITICAL thresholds through `-w` and `-c`.
+- Added support for threshold values with or without the `%` suffix.
+- Added validation of percentage threshold values and ordering.
+- Added UNKNOWN handling for missing or invalid command-line arguments.
+- Added virtual machine existence and running-state validation.
+- Added UNKNOWN handling for missing or stopped virtual machines.
+- Added QEMU Guest Agent communication error handling.
+- Added asynchronous guest command execution through `guest-exec`.
+- Added guest command completion polling through `guest-exec-status`.
+- Replaced fixed execution delays with timeout-controlled polling.
+- Added JSON parsing of QEMU Guest Agent responses using `jq`.
+- Added Base64 decoding of guest command output.
+- Added guest command exit-code validation.
+- Added UNKNOWN handling for invalid or missing guest command output.
+- Added filesystem information collection through `df -P -k`.
+- Added exact filesystem mount-point matching.
+- Added UNKNOWN handling when the requested mount point is unavailable.
+- Added filesystem capacity reporting in GiB.
+- Added available-space and used-space percentage reporting.
+- Added protection against invalid filesystem size values and division by zero.
+- Removed the external `bc` dependency.
+- Added configurable command timeout with a 30-second default.
+- Added UNKNOWN handling for guest command execution timeouts.
+- Added standard Nagios OK, WARNING, CRITICAL, and UNKNOWN exit codes.
+- Added Nagios-compatible performance data.
+- Added per-filesystem free-space percentage performance data.
+- Added per-filesystem used-space percentage performance data.
+- Added used, available, and total filesystem capacity performance data.
+- Added Nagios range syntax for free-space WARNING and CRITICAL thresholds.
+- Added support for lower-bound free-space thresholds using `@0:WARNING` and `@0:
+
 ## check_dnf.py 1.2.1 - 2026-10-07
 
 - Added reboot reason reporting from `dnf needs-restarting -r`.

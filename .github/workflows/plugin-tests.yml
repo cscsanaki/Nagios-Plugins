@@ -188,3 +188,21 @@ jobs:
             echo "Legacy YUM reference found"
             exit 1
           fi
+
+      # ------------------------------------------------------------------
+      # check_kvm_disk.sh
+      # ------------------------------------------------------------------
+
+      - name: Check KVM disk plugin shell syntax
+        run: |
+          bash -n plugins/check_kvm_disk.sh
+          bash -n tests/test_check_kvm_disk.sh
+
+      - name: Check KVM disk plugin CLI
+        run: |
+          bash plugins/check_kvm_disk.sh --version
+          bash plugins/check_kvm_disk.sh --help
+
+      - name: Run KVM disk plugin tests
+        run: |
+          bash tests/test_check_kvm_disk.sh
