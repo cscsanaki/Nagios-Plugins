@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Mock-based regression tests for check_kvm_disk.sh 1.0.1.
 set -u
-PLUGIN="$(cd "$(dirname "$0")" && pwd)/check_kvm_disk.sh"
+PLUGIN="${PLUGIN:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/plugins/check_kvm_disk.sh}"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/bin"
@@ -54,12 +54,12 @@ check() {
     printf 'FAIL %s: exit=%s expected=%s output=%s\n' "$title" "$rc" "$expected" "$output"; ((failed+=1))
   fi
 }
-base=(-d Clickhouse -p / -w 20% -c 10%)
+base=(-d example-vm -p / -w 20% -c 10%)
 check version 0 '1.0.1' --version
 check help 0 'Usage:' --help
-check missing_arguments 3 'required' -d Clickhouse
-check invalid_threshold 3 'whole percentages' -d Clickhouse -p / -w abc -c 10
-check reversed_threshold 3 'greater than' -d Clickhouse -p / -w 10 -c 20
+check missing_arguments 3 'required' -d example-vm
+check invalid_threshold 3 'whole percentages' -d example-vm -p / -w abc -c 10
+check reversed_threshold 3 'greater than' -d example-vm -p / -w 10 -c 20
 check invalid_timeout 3 'positive integer' "${base[@]}" -t 0
 check ok 0 'DISK OK:' "${base[@]}"
 check perfdata 0 "'/_free_pct'=50%;@0:20;@0:10;0;100" "${base[@]}"
