@@ -26,7 +26,7 @@ Usage: check_kvm_disk.sh -d VM -p MOUNT -w FREE_WARN -c FREE_CRIT [options]
   -v, --verbose           diagnostic output (stderr)
   -h, --help              show this help
   -V, --version           show version
-Example: check_kvm_disk.sh -d Clickhouse -p / -w 20 -c 10
+Example: check_kvm_disk.sh -d example-vm -p / -w 20 -c 10
 HELP
 }
 
