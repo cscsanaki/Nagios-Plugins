@@ -18,7 +18,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
 | `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
-| `check_kvm_disk.sh` | 1.0.1 | Pending first release |
+| `check_kvm_disk.sh` | 1.0.1 | [check_kvm_disk.sh v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-disk-v1.0.1) |
 
 Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
@@ -527,16 +527,16 @@ See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page fo
 
 ### Download check_kvm_disk.sh
 
-Development branch (first public release pending):
+Latest released version:
 
 ```bash
 curl -fL -o check_kvm_disk.sh \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/add-kvm-disk-plugin/plugins/check_kvm_disk.sh
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-disk-v1.0.1/plugins/check_kvm_disk.sh
 
 chmod +x check_kvm_disk.sh
 ```
 
-After publication, this download URL will be updated to the versioned `check-kvm-disk-v1.0.1` release tag.
+See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ## Installation
 
