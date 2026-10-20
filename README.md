@@ -449,7 +449,7 @@ See [docs/check_kvm_disk.md](docs/check_kvm_disk.md) for detailed documentation.
 
 Bash Nagios/Icinga/Centreon plugin for monitoring KVM guest filesystem **used space** through libguestfs `virt-df`, without requiring QEMU Guest Agent or SSH inside the guest.
 
-Current version: **1.0.3** (first public release pending).
+Current version: **1.0.3**
 
 Features:
 
