@@ -19,7 +19,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
 | `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
 | `check_kvm_disk.sh` | 1.0.1 | [check_kvm_disk.sh v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-disk-v1.0.1) |
-| `check_kvm_virt_df.sh` | 1.0.3 | Pending first release |
+| `check_kvm_virt_df.sh` | 1.0.3 | [check_kvm_virt_df.sh v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-virt-df-v1.0.3) |
 
 Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
@@ -594,17 +594,16 @@ See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page fo
 
 ### Download check_kvm_virt_df.sh
 
-Development branch (first public release pending):
+Latest released version:
 
 ```bash
 curl -fL -o check_kvm_virt_df.sh \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/add-kvm-virt-df-plugin/plugins/check_kvm_virt_df.sh
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-virt-df-v1.0.3/plugins/check_kvm_virt_df.sh
 
-chmod +x check_kvm_virt_df.sh
+chmod 755 check_kvm_virt_df.sh
 ```
 
-After publishing the first release, update this URL to the versioned `check-kvm-virt-df-v1.0.3` tag.
-
+See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ## Installation
 
