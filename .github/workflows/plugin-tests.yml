@@ -206,3 +206,21 @@ jobs:
       - name: Run KVM disk plugin tests
         run: |
           bash tests/test_check_kvm_disk.sh
+
+      # ------------------------------------------------------------
+      # check_kvm_virt_df.sh
+      # ------------------------------------------------------------
+
+      - name: Check KVM virt-df plugin shell syntax
+        run: |
+          bash -n plugins/check_kvm_virt_df.sh
+          bash -n tests/test_check_kvm_virt_df.sh
+
+      - name: Check KVM virt-df plugin CLI
+        run: |
+          bash plugins/check_kvm_virt_df.sh --version
+          bash plugins/check_kvm_virt_df.sh --help
+
+      - name: Run KVM virt-df plugin tests
+        run: |
+          bash tests/test_check_kvm_virt_df.sh

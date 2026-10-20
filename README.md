@@ -19,6 +19,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
 | `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
 | `check_kvm_disk.sh` | 1.0.1 | [check_kvm_disk.sh v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-disk-v1.0.1) |
+| `check_kvm_virt_df.sh` | 1.0.3 | Pending first release |
 
 Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
@@ -444,6 +445,59 @@ See [docs/check_kvm_disk.md](docs/check_kvm_disk.md) for detailed documentation.
 
 ---
 
+### check_kvm_virt_df.sh
+
+Bash Nagios/Icinga/Centreon plugin for monitoring KVM guest filesystem **used space** through libguestfs `virt-df`, without requiring QEMU Guest Agent or SSH inside the guest.
+
+Current version: **1.0.3** (first public release pending).
+
+Features:
+
+- Monitors running and stopped libvirt guests by domain name (`-d`)
+- Monitors offline disk images with `-i` (mutually exclusive with `-d`)
+- Selects one exact filesystem identifier with `-p`, or checks all discovered filesystems when omitted
+- Supports independent used-space WARNING and CRITICAL thresholds per Nagios service
+- Handles decimal percentages, standard CSV headers, and multiple filesystems
+- Reports the highest severity when multiple filesystems are checked
+- Provides Nagios-compatible used-space percentage and KiB performance data
+- Configurable timeout, verbose diagnostics, and standard Nagios exit codes
+- Protects against directly inspecting disk images attached to running libvirt guests in image mode
+- Includes **31 mock-based Bash regression tests**, requiring no live VM
+
+Discover available guest filesystem identifiers:
+
+```bash
+virt-df -d example-vm --csv
+```
+
+Illustrative CSV output:
+
+```csv
+VirtualMachine,Filesystem,1K-blocks,Used,Available,Use%
+example-vm,/dev/sda1,10166108,2387304,7238184,23.5
+example-vm,/dev/sda2,88574536,31959456,52089820,36.1
+```
+
+Check one filesystem:
+
+```bash
+./check_kvm_virt_df.sh -d example-vm -p /dev/sda1 -w 80 -c 90
+```
+
+Check another filesystem with different thresholds:
+
+```bash
+./check_kvm_virt_df.sh -d example-vm -p /dev/sda2 -w 85 -c 95
+```
+
+Unlike `check_kvm_disk.sh`, which evaluates **free space** using QEMU Guest Agent, `check_kvm_virt_df.sh` evaluates **used space** using `virt-df`. Filesystem identifiers such as `/dev/sda1` do not necessarily correspond directly to mount points such as `/boot` or `/`.
+
+For running guests, filesystem information may not be fully point-in-time consistent because the guest can modify its disks during inspection.
+
+See [docs/check_kvm_virt_df.md](docs/check_kvm_virt_df.md) for detailed documentation.
+
+---
+
 ## Download
 
 ### Download check_dnf.py
@@ -538,6 +592,20 @@ chmod +x check_kvm_disk.sh
 
 See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
+### Download check_kvm_virt_df.sh
+
+Development branch (first public release pending):
+
+```bash
+curl -fL -o check_kvm_virt_df.sh \
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/add-kvm-virt-df-plugin/plugins/check_kvm_virt_df.sh
+
+chmod +x check_kvm_virt_df.sh
+```
+
+After publishing the first release, update this URL to the versioned `check-kvm-virt-df-v1.0.3` tag.
+
+
 ## Installation
 
 ### RHEL / Rocky Linux
@@ -624,6 +692,25 @@ sudo chmod 755 /usr/lib64/nagios/plugins/check_kvm_disk.sh
 
 Requires `virsh`, `jq`, `base64`, libvirt access, and a functioning QEMU Guest Agent in the guest. Access to guest command execution is security-sensitive.
 
+### check_kvm_virt_df.sh
+
+On RHEL / Rocky Linux, install the libguestfs package providing `virt-df`:
+
+```bash
+sudo dnf install libguestfs-tools-c
+virt-df --version
+```
+
+Install the plugin on the KVM host:
+
+```bash
+sudo cp check_kvm_virt_df.sh /usr/lib64/nagios/plugins/
+sudo chmod 755 /usr/lib64/nagios/plugins/check_kvm_virt_df.sh
+```
+
+The plugin also requires Bash, Python 3, GNU `timeout`, libvirt access, and `virsh` for direct-image safety checks. The monitoring account must have appropriate permissions to run `virt-df` and query libvirt. No QEMU Guest Agent is required.
+
+
 ## NRPE examples
 
 ### DNF
@@ -705,6 +792,30 @@ Remote invocation from a Nagios server:
 ```bash
 /usr/lib64/nagios/plugins/check_nrpe -H kvm-host.example.com -c check_kvm_disk_root
 ```
+
+### KVM guest filesystem monitoring with virt-df
+
+Discover filesystems first:
+
+```bash
+virt-df -d example-vm --csv
+```
+
+Configure separate NRPE services with independent **used-space** thresholds:
+
+```text
+command[check_kvm_virt_df_boot]=/usr/lib64/nagios/plugins/check_kvm_virt_df.sh -d example-vm -p /dev/sda1 -w 70 -c 85
+command[check_kvm_virt_df_root]=/usr/lib64/nagios/plugins/check_kvm_virt_df.sh -d example-vm -p /dev/sda2 -w 85 -c 95
+```
+
+These filesystem-to-mount-point mappings are illustrative and must be verified for the actual guest.
+
+Remote invocation from the monitoring server:
+
+```bash
+/usr/lib64/nagios/plugins/check_nrpe -H kvm-host.example.com -c check_kvm_virt_df_root
+```
+
 
 ## Nagios exit codes
 
@@ -806,6 +917,15 @@ bash tests/test_check_kvm_disk.sh
 
 The KVM disk plugin includes **20 mock-based tests** covering CLI validation, threshold boundaries, performance data, guest-agent failures, missing mount points, invalid Base64 output, and timeouts. No real KVM guest is required.
 
+### check_kvm_virt_df.sh
+
+```bash
+bash tests/test_check_kvm_virt_df.sh
+```
+
+The virt-df plugin includes **31 mock-based Bash regression tests** covering CLI validation, domain and offline-image selection, filesystem filtering, OK/WARNING/CRITICAL states, threshold handling, performance data, CSV parsing, missing or malformed output, libvirt failures, active-image rejection, and timeouts. No running VM or real disk image is required.
+
+
 ## Continuous integration
 
 GitHub Actions validates the repository with:
@@ -844,6 +964,17 @@ Run KVM disk plugin tests
 
 The Bash tests run in each existing Python matrix job and do not require libvirt or a running VM.
 
+For `check_kvm_virt_df.sh`, CI performs:
+
+```text
+Check KVM virt-df plugin shell syntax
+Check KVM virt-df plugin CLI
+Run KVM virt-df plugin tests
+```
+
+The 31 mock-based Bash tests run in each existing Python matrix job without requiring a running KVM guest.
+
+
 ## Repository layout
 
 ```text
@@ -858,6 +989,7 @@ Nagios-Plugins/
 │   ├── check_dnf.md
 │   ├── check_hpe_hardware.md
 │   ├── check_kvm_disk.md
+│   ├── check_kvm_virt_df.md
 │   ├── check_hpe_raid.md
 │   ├── check_librenms_validate.md
 │   ├── check_ssacli_disks.md
@@ -867,6 +999,7 @@ Nagios-Plugins/
 │   ├── check_dnf.py
 │   ├── check_hpe_hardware.py
 │   ├── check_kvm_disk.sh
+│   ├── check_kvm_virt_df.sh
 │   ├── check_hpe_raid.py
 │   ├── check_librenms_validate
 │   ├── check_ssacli_disks.sh
@@ -876,6 +1009,7 @@ Nagios-Plugins/
 │   ├── test_check_dnf.py
 │   ├── test_check_hpe_hardware.py
 │   ├── test_check_kvm_disk.sh
+│   ├── test_check_kvm_virt_df.sh
 │   ├── test_check_hpe_raid.py
 │   ├── test_check_librenms_validate.sh
 │   ├── test_check_ssacli_disks.sh
@@ -978,10 +1112,24 @@ Podman is not supported by `check_container_health.py` version 1.0.1.
 
 QEMU Guest Agent command execution requires carefully controlled privileges.
 
+### check_kvm_virt_df.sh
+
+- Bash and Python 3 (CSV parsing)
+- KVM/QEMU and libvirt access
+- `virt-df` from `libguestfs-tools-c` (`sudo dnf install libguestfs-tools-c` on RHEL-compatible systems)
+- `virsh` for direct-image safety checks
+- GNU `timeout` from coreutils
+- Permission to inspect guest filesystems and query libvirt
+- Nagios, Icinga, Centreon, or NRPE for monitoring integration
+
+QEMU Guest Agent is **not** required. Domain mode (`-d`) can inspect running guests, but guest filesystem usage may not be fully consistent while the guest writes to its disks. Direct image mode (`-i`) is intended for offline images or consistent snapshots.
+
+
 ## Documentation
 
 - [check_container_health.py documentation](docs/check_container_health.md)
 - [check_kvm_disk.sh documentation](docs/check_kvm_disk.md)
+- [check_kvm_virt_df.sh documentation](docs/check_kvm_virt_df.md)
 - [check_dnf.py documentation](docs/check_dnf.md)
 - [check_librenms_validate documentation](docs/check_librenms_validate.md)
 - [check_hpe_hardware.py documentation](docs/check_hpe_hardware.md)
