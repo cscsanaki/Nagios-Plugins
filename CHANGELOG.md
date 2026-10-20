@@ -2,6 +2,83 @@
 
 All notable changes to this repository will be documented here.
 
+## check_kvm_virt_df.sh 1.0.3 - 2026-10-20
+
+Initial public release of `check_kvm_virt_df.sh`.
+
+### Added
+
+- Added KVM guest filesystem monitoring using libguestfs `virt-df`.
+- Added support for monitoring running and stopped libvirt virtual machines without QEMU Guest Agent.
+- Added domain-based monitoring using `-d` / `--domain`.
+- Added offline disk image monitoring using `-i` / `--image`.
+- Added individual filesystem selection using `-p` / `--partition`.
+- Added monitoring of all discovered filesystems when no partition filter is specified.
+- Added independent WARNING and CRITICAL thresholds for individual filesystems through separate plugin invocations.
+- Added configurable used-space WARNING and CRITICAL thresholds using `-w` / `--warning` and `-c` / `--critical`.
+- Added configurable command timeout using `-t` / `--timeout`.
+- Added verbose diagnostic output using `-v` / `--verbose`.
+- Added `--help` and `--version` command-line options.
+- Added support for decimal filesystem usage percentages.
+- Added support for multiple filesystems with highest-severity evaluation.
+- Added filesystem usage and capacity reporting in GiB.
+- Added Nagios-compatible performance data for used capacity in KiB and used-space percentage.
+- Added WARNING and CRITICAL thresholds to performance data.
+- Added standard Nagios OK, WARNING, CRITICAL, and UNKNOWN exit codes.
+- Added CSV parsing using Python 3.
+- Added support for standard six-column and legacy five-column `virt-df` CSV output.
+- Added automatic CSV header detection.
+- Added exclusion of swap records.
+- Added detection of missing filesystem identifiers.
+- Added validation of command-line arguments and threshold ordering.
+- Added UNKNOWN handling for invalid or missing input values.
+- Added UNKNOWN handling for missing or unreadable disk images.
+- Added UNKNOWN handling for malformed, empty, or invalid CSV output.
+- Added UNKNOWN handling for `virt-df` command failures and timeouts.
+- Added direct-image safety checks for disk images attached to running libvirt guests.
+- Added support for NRPE-based remote monitoring.
+- Added 31 automated mock-based Bash regression tests.
+- Added Bash syntax, CLI, and regression-test checks to the GitHub Actions workflow.
+- Added dedicated documentation in `docs/check_kvm_virt_df.md`.
+- Added installation instructions for the `libguestfs-tools-c` package.
+- Added filesystem discovery examples using `virt-df -d example-vm --csv`.
+- Added separate filesystem monitoring examples with individual thresholds.
+- Added security and consistency guidance for monitoring running virtual machines.
+
+### Fixed
+
+- Fixed CSV parsing of the `VirtualMachine,Filesystem,1K-blocks,Used,Available,Use%` header.
+- Fixed handling of six-column CSV records.
+- Fixed handling of decimal filesystem usage percentages.
+- Fixed filesystem selection to evaluate only the requested filesystem when `-p` is specified.
+- Fixed UNKNOWN handling when the requested filesystem is not found.
+- Improved validation of malformed filesystem usage data.
+- Improved timeout and command-failure handling.
+- Improved Nagios performance-data generation.
+
+### Testing
+
+- Validated domain-based monitoring against running KVM virtual machines.
+- Validated filesystem discovery using `virt-df --csv`.
+- Validated individual filesystem monitoring using `-p`.
+- Validated OK, WARNING, and CRITICAL states against a running KVM guest.
+- Validated Nagios exit codes `0`, `1`, and `2`.
+- Validated filesystem usage and capacity reporting.
+- Validated percentage and KiB performance data.
+- Validated offline QCOW2 disk image monitoring.
+- Validated rejection of direct image access when the image is attached to a running libvirt guest.
+- Validated Bash syntax.
+- Passed all 31 automated mock-based regression tests.
+
+### Notes
+
+- Domain-based monitoring uses `virt-df -d` and does not require QEMU Guest Agent or SSH access to the guest.
+- Filesystem identifiers must be discovered using `virt-df --csv` and may not directly correspond to guest mount points.
+- Filesystem usage values obtained from running virtual machines may not represent a fully consistent point-in-time view.
+- Direct image monitoring is intended for offline disk images or consistent snapshots.
+- The plugin does not intentionally modify guest filesystems.
+- All public examples use generic virtual machine and host names.
+
 ## check_kvm_disk.sh 1.0.1 - 2026-10-19
 
 Initial public release of `check_kvm_disk.sh`.
