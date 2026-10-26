@@ -276,6 +276,8 @@ Current version: **1.0.1**
 
 Version 1.0.1 supports Docker. Podman support is not yet available.
 
+Container names and resource values in the examples below are illustrative and do not represent a specific production environment.
+
 Features:
 
 - Automatic Docker runtime detection
@@ -319,34 +321,34 @@ Monitor one container:
 
 ```bash
 ./check_container_health.py \
-  --container kof-grafana
+  --container example-grafana
 ```
 
 Example:
 
 ```text
-CONTAINERS OK: kof-grafana running, health=none, restarts=0 | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0
+CONTAINERS OK: example-grafana running, health=none, restarts=0 | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0
 ```
 
 Monitor one container including CPU, memory, and PID statistics:
 
 ```bash
 ./check_container_health.py \
-  --container kof-grafana \
+  --container example-grafana \
   --check-resources
 ```
 
 Example:
 
 ```text
-CONTAINERS OK: kof-grafana running, health=none, restarts=0, CPU 0.05%, memory 2.22% | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0 'kof-grafana_cpu'=0.05% 'kof-grafana_memory'=2.22% 'kof-grafana_memory_bytes'=178887065B 'kof-grafana_pids'=16
+CONTAINERS OK: example-grafana running, health=none, restarts=0, CPU 0.05%, memory 2.22% | containers=1 running=1 stopped=0 paused=0 restarting=0 unhealthy=0 oom_killed=0 missing=0 restarts=0 'example-grafana_cpu'=0.05% 'example-grafana_memory'=2.22% 'example-grafana_memory_bytes'=178887065B 'example-grafana_pids'=16
 ```
 
 Configure CPU and memory thresholds:
 
 ```bash
 ./check_container_health.py \
-  --container kof-grafana \
+  --container example-grafana \
   --check-resources \
   --cpu-warning 80 \
   --cpu-critical 95 \
@@ -369,15 +371,15 @@ Require specific containers:
 
 ```bash
 ./check_container_health.py \
-  --expect kof-grafana \
-  --expect kof-nginx_be
+  --expect example-grafana \
+  --expect example-nginx
 ```
 
 Monitor only selected container groups:
 
 ```bash
 ./check_container_health.py \
-  --include 'kof-*'
+  --include 'example-*'
 ```
 
 Exclude selected containers:
@@ -391,7 +393,7 @@ Combine include and exclude filters:
 
 ```bash
 ./check_container_health.py \
-  --include 'atom-*' \
+  --include 'web-*' \
   --exclude '*fluent-bit'
 ```
 
@@ -777,7 +779,7 @@ command[check_container_resources]=/usr/lib64/nagios/plugins/check_container_hea
 Specific container monitoring:
 
 ```text
-command[check_container_grafana]=/usr/lib64/nagios/plugins/check_container_health.py --container kof-grafana --check-restarts --check-resources --cpu-warning 80 --cpu-critical 95 --memory-warning 80 --memory-critical 90
+command[check_container_grafana]=/usr/lib64/nagios/plugins/check_container_health.py --container example-grafana --check-restarts --check-resources --cpu-warning 80 --cpu-critical 95 --memory-warning 80 --memory-critical 90
 ```
 
 ### KVM guest disk monitoring
