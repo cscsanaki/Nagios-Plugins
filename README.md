@@ -9,19 +9,20 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 ## Current versions
 
-| Plugin | Version | Release |
+| Plugin | Version | Direct download |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.1 | [check_dnf.py v1.2.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-dnf-v1.2.1) |
-| `check_librenms_validate` | 1.0.3 | [check_librenms_validate v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-librenms-validate-v1.0.3) |
-| `check_hpe_hardware.py` | 1.0.4 | [check_hpe_hardware.py v1.0.4](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-hardware-v1.0.4) |
-| `check_ssacli_disks.sh` | 1.0.0 | [check_ssacli_disks.sh v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-ssacli-disks-v1.0.0) |
-| `check_hpe_raid.py` | 1.0.0 | [check_hpe_raid.py v1.0.0](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-hpe-raid-v1.0.0) |
-| `check_systemd_health.py` | 1.0.2 | [check_systemd_health.py v1.0.2](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-systemd-health-v1.0.2) |
-| `check_container_health.py` | 1.0.1 | [check_container_health.py v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-container-health-v1.0.1) |
-| `check_kvm_disk.sh` | 1.0.1 | [check_kvm_disk.sh v1.0.1](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-disk-v1.0.1) |
-| `check_kvm_virt_df.sh` | 1.0.3 | [check_kvm_virt_df.sh v1.0.3](https://github.com/cscsanaki/Nagios-Plugins/releases/tag/check-kvm-virt-df-v1.0.3) |
+| `check_dnf.py` | 1.2.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.1/plugins/check_dnf.py) |
+| `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
+| `check_hpe_hardware.py` | 1.0.4 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py) |
+| `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
+| `check_hpe_raid.py` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py) |
+| `check_systemd_health.py` | 1.0.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-systemd-health-v1.0.2/plugins/check_systemd_health.py) |
+| `check_container_health.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-container-health-v1.0.1/plugins/check_container_health.py) |
+| `check_kvm_disk.sh` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-disk-v1.0.1/plugins/check_kvm_disk.sh) |
+| `check_kvm_virt_df.sh` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-virt-df-v1.0.3/plugins/check_kvm_virt_df.sh) |
 
-Each plugin is versioned independently. See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
+The **Direct download** links point to individual plugin files at their versioned release tags. In some browsers, the raw file may open as text; use **Save link as** to save it.
+
 
 ## Plugins
 
@@ -579,7 +580,6 @@ curl -L -o check_container_health.py \
 chmod +x check_container_health.py
 ```
 
-See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ### Download check_kvm_disk.sh
 
@@ -592,7 +592,6 @@ curl -fL -o check_kvm_disk.sh \
 chmod +x check_kvm_disk.sh
 ```
 
-See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ### Download check_kvm_virt_df.sh
 
@@ -605,7 +604,6 @@ curl -fL -o check_kvm_virt_df.sh \
 chmod 755 check_kvm_virt_df.sh
 ```
 
-See the [Releases](https://github.com/cscsanaki/Nagios-Plugins/releases) page for plugin-specific release notes and source archives.
 
 ## Installation
 
