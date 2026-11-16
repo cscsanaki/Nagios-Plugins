@@ -211,9 +211,19 @@ def resolve_ilorest(path=None):
         f"iLOrest executable not found (searched: {searched}, PATH)"
     )
 
+class NagiosArgumentParser(argparse.ArgumentParser):
+    """Return Nagios UNKNOWN for invalid command-line arguments."""
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        print(
+            f"HPE UNKNOWN: invalid arguments: {message}",
+            file=sys.stderr,
+        )
+        raise SystemExit(UNKNOWN)
 
 def build_parser():
-    parser = argparse.ArgumentParser(
+    parser = NagiosArgumentParser(
         description="Nagios/Icinga plugin for monitoring HPE hardware through HPE iLOrest."
     )
     parser.add_argument(
