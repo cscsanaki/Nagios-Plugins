@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 DEFAULT_ILOREST_CANDIDATES = (
     "/opt/ilorest/bin/ilorest",
     "/usr/sbin/ilorest",
@@ -177,7 +177,7 @@ def get_latest_iml_logs(session, count=3):
     try:
         logs = session.run(["iml"])
     except CommandError as exc:
-        return f" | IML Logs: unable to retrieve detailed IML logs ({exc})"
+        return f"; IML Logs: unable to retrieve detailed IML logs ({exc})"
 
     ansi = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
     lines = []
@@ -185,7 +185,7 @@ def get_latest_iml_logs(session, count=3):
         clean = ansi.sub("", line).strip()
         if clean and not any(x in clean for x in ("IML", "Severity", "===", "Logged")):
             lines.append(clean)
-    return " | IML Logs: " + " -> ".join(lines[-count:]) if lines else ""
+    return "; IML Logs: " + " -> ".join(lines[-count:]) if lines else ""
 
 
 def resolve_ilorest(path=None):

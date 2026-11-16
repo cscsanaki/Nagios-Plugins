@@ -354,5 +354,37 @@ Event four
         self.assertNotIn("\x1b", result)
 
 
+    def test_iml_output_uses_status_separator(self):
+        session = FakeSession(
+            iml="Memory failure\nPower warning"
+        )
+
+        result = hpe.get_latest_iml_logs(session)
+
+        self.assertTrue(result.startswith("; IML Logs:"))
+        self.assertIn("Memory failure", result)
+        self.assertIn("Power warning", result)
+        self.assertNotIn("| IML Logs:", result)
+        self.assertNotIn("|", result)
+
+    def test_iml_command_failure_uses_status_separator(self):
+        session = FakeSession()
+
+        with patch.object(
+            session,
+            "run",
+            side_effect=hpe.CommandError("CHIF unavailable"),
+        ):
+            result = hpe.get_latest_iml_logs(session)
+
+        self.assertTrue(result.startswith("; IML Logs:"))
+        self.assertIn(
+            "unable to retrieve detailed IML logs",
+            result,
+        )
+        self.assertIn("CHIF unavailable", result)
+        self.assertNotIn("| IML Logs:", result)
+        self.assertNotIn("|", result)
+
 if __name__ == "__main__":
     unittest.main()

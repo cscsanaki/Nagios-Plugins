@@ -2,6 +2,16 @@
 
 All notable changes to this repository will be documented here.
 
+## check_hpe_hardware.py 1.0.5 - 2026-11-16
+
+- Fixed Integrated Management Log (IML) output formatting for Nagios/Icinga.
+- Replaced the `| IML Logs:` separator with `; IML Logs:` to keep diagnostic messages in the human-readable plugin status text.
+- Fixed IML retrieval error messages to use the same status-text separator.
+- Prevented IML details from being interpreted as Nagios performance data.
+- Preserved existing hardware health detection, severity mapping, and exit codes.
+- Added two regression tests covering successful and failed IML retrieval.
+- Validated the changes with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
 ## check_kvm_virt_df.sh 1.0.3 - 2026-10-20
 
 Initial public release of `check_kvm_virt_df.sh`.
