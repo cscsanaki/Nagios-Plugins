@@ -719,7 +719,7 @@ sudo cp check_hpe_raid.py /usr/lib64/nagios/plugins/
 sudo chmod 755 /usr/lib64/nagios/plugins/check_hpe_raid.py
 ```
 
-The `check_hpe_raid.py` 1.0.2 test suite contains **45 automated tests**,
+The `check_hpe_raid.py` 1.0.3 test suite contains **45 automated tests**,
 covering controller cache, battery/capacitor health, logical drive
 recovery progress, severity precedence, and Nagios exit codes.
 
@@ -961,8 +961,9 @@ bash tests/test_check_ssacli_disks.sh
 python3 -m unittest tests/test_check_hpe_raid.py -v
 ```
 
-The `check_hpe_raid.py` 1.0.1 test suite contains **36 automated tests**,
-including regression coverage for invalid arguments and unexpected runtime errors.
+The `check_hpe_raid.py` 1.0.3 test suite contains **45 automated tests**,
+covering controller cache, battery/capacitor health, logical drive
+recovery progress, severity precedence, and Nagios exit codes.
 
 ### check_systemd_health.py
 
