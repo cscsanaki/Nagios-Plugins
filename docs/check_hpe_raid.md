@@ -3,7 +3,7 @@
 `check_hpe_raid.py` is a Nagios/Icinga plugin for monitoring HPE Smart Array
 RAID health through HPE Smart Storage Administrator CLI (`ssacli`).
 
-Current version: **1.0.2**
+Current version: **1.0.3**
 
 ## Requirements
 
@@ -459,6 +459,30 @@ HPE RAID UNKNOWN: unexpected error: OSError: simulated filesystem error
 The `--help` and `--version` options continue to exit with code 0.
 
 Existing RAID controller, array, and logical drive health monitoring remains unchanged.
+
+## Release correction (v1.0.3)
+
+Version 1.0.3 is a corrective release following an incorrectly
+targeted v1.0.2 GitHub release tag.
+
+The v1.0.2 tag referenced an older commit containing the v1.0.1
+plugin implementation.
+
+Version 1.0.3 is intended to publish the complete, previously
+developed HPE RAID monitoring improvements, including:
+
+- Controller cache health monitoring.
+- Battery/capacitor health monitoring.
+- WARNING and CRITICAL severity evaluation for controller components.
+- Logical drive recovery and rebuild progress parsing.
+- Detailed controller component diagnostics in Nagios output.
+- Updated problem counters.
+
+No additional monitoring functionality is introduced compared with
+the corrected v1.0.2 source code already merged into main.
+
+The release retains the 45 automated regression tests validated
+with Python 3.9, 3.11, and 3.13.
 
 ## Controller health and recovery parsing (v1.0.2)
 
