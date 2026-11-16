@@ -546,7 +546,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_hpe_hardware.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.4/plugins/check_hpe_hardware.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.5/plugins/check_hpe_hardware.py
 
 chmod +x check_hpe_hardware.py
 ```
