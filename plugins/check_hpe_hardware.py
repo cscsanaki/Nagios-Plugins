@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 DEFAULT_ILOREST_CANDIDATES = (
     "/opt/ilorest/bin/ilorest",
     "/usr/sbin/ilorest",
