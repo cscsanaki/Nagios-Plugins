@@ -69,6 +69,29 @@ HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
         self.assertEqual(len(result), 1)
         self.assertIsNone(result[0]["status"])
 
+    def test_failed_cache_status_is_detected(self):
+        output = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+"""
+        result = hpe.controllers(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["status"], "OK")
+        self.assertEqual(result[0]["cache_status"], "Failed")
+
+    def test_failed_capacitor_status_is_detected(self):
+        output = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Failed
+"""
+        result = hpe.controllers(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["status"], "OK")
+        self.assertEqual(result[0]["capacitor_status"], "Failed")
 
 class TestArrayParsing(unittest.TestCase):
 
@@ -114,7 +137,32 @@ array A
 
         self.assertEqual(result[0]["status"], "OK")
 
+    def test_recovering_with_progress_is_parsed(self):
+        output = """
+array A (OK)
 
+   logicaldrive 1 (447.1 GB, RAID 1, Recovering, 45% complete)
+"""
+        result = hpe.arrays(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["lds"][0]["id"], "1")
+        self.assertEqual(
+            result[0]["lds"][0]["status"],
+            "Recovering",
+        )
+
+    def test_recovering_with_progress_returns_warning(self):
+        output = """
+array A (OK)
+
+   logicaldrive 1 (447.1 GB, RAID 1, Recovering, 45% complete)
+"""
+        result = hpe.arrays(output)
+        status = result[0]["lds"][0]["status"]
+
+        self.assertEqual(hpe.ldsev(status), hpe.WARNING)
+       
 class TestLogicalDriveSeverity(unittest.TestCase):
 
     def test_ok(self):
