@@ -421,5 +421,29 @@ class TestNagiosArgumentErrors(unittest.TestCase):
             msg=result.stdout + result.stderr,
         )
 
+class TestUnexpectedRuntimeErrors(unittest.TestCase):
+    """Unexpected runtime errors must return Nagios UNKNOWN."""
+
+    def test_unexpected_oserror_returns_unknown(self):
+        stdout = io.StringIO()
+
+        with patch.object(
+            hpe,
+            "resolve_ilorest",
+            side_effect=OSError("simulated filesystem error"),
+        ), patch.object(
+            sys,
+            "argv",
+            ["check_hpe_hardware.py"],
+        ), redirect_stdout(stdout):
+
+            try:
+                result = hpe.main()
+            except OSError:
+                self.fail("Unexpected OSError escaped from main()")
+
+        self.assertEqual(result, hpe.UNKNOWN)
+        self.assertIn("HPE UNKNOWN:", stdout.getvalue())
+
 if __name__ == "__main__":
     unittest.main()
