@@ -3,7 +3,7 @@
 `check_hpe_hardware.py` is a Nagios/Icinga plugin for monitoring HPE server
 hardware through the local HPE iLOrest CLI.
 
-Current version: **1.0.5**
+Current version: **1.0.6**
 
 ## Tested environments
 
@@ -377,6 +377,34 @@ Two regression tests verify the formatting of successful and failed IML retrieva
 
 ANSI terminal colour sequences are removed from IML text.
 
+## Nagios UNKNOWN exit code handling (v1.0.6)
+
+Version 1.0.6 improves error handling for invalid command-line arguments and unexpected runtime exceptions.
+
+Invalid command-line arguments now return Nagios UNKNOWN (exit code 3) instead of the default argparse exit code 2, which Nagios would interpret as CRITICAL.
+
+Examples:
+
+```bash
+./check_hpe_hardware.py --invalid-option
+./check_hpe_hardware.py --timeout abc
+./check_hpe_hardware.py --timeout 0
+```
+
+All three commands return UNKNOWN (3).
+
+Unexpected runtime exceptions are handled by the protected `run_main()` entry point and reported as UNKNOWN (3) instead of terminating with an unhandled traceback.
+
+Example diagnostic output:
+
+```text
+HPE UNKNOWN: unexpected error: OSError: simulated filesystem error
+```
+
+The `--help` and `--version` options continue to exit with code 0.
+
+Existing hardware health detection, IML reporting, severity mapping, and normal Nagios exit codes remain unchanged.
+
 ## Automated tests
 
 The unit tests mock iLOrest and do not require HPE hardware:
@@ -409,5 +437,8 @@ The test suite covers:
 - PATH fallback
 - missing iLOrest handling
 - 60-second default timeout validation
+- Invalid command-line arguments returning Nagios UNKNOWN
+- Invalid timeout values returning Nagios UNKNOWN
+- Unexpected runtime exceptions returning Nagios UNKNOWN
 
 GitHub Actions runs the tests with Python 3.9, 3.11, and 3.13.

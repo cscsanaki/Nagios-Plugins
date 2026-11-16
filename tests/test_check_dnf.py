@@ -3,6 +3,7 @@ import io
 import pathlib
 import subprocess
 import unittest
+import sys
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
@@ -822,6 +823,31 @@ Security: kernel-core-5.14.0-687.46.1.el9_8.x86_64 is the currently running vers
             check_dnf.CRITICAL,
         )
 
+class TestNagiosArgumentErrors(unittest.TestCase):
+
+    def test_unknown_argument_returns_unknown(self):
+        with patch.object(
+            sys,
+            "argv",
+            ["check_dnf.py", "--invalid-option"],
+        ):
+            with redirect_stdout(io.StringIO()):
+                with self.assertRaises(SystemExit) as ctx:
+                    check_dnf.parse_args()
+
+        self.assertEqual(ctx.exception.code, check_dnf.UNKNOWN)
+
+    def test_invalid_timeout_returns_unknown(self):
+        with patch.object(
+            sys,
+            "argv",
+            ["check_dnf.py", "--timeout", "0"],
+        ):
+            with redirect_stdout(io.StringIO()):
+                with self.assertRaises(SystemExit) as ctx:
+                    check_dnf.parse_args()
+
+        self.assertEqual(ctx.exception.code, check_dnf.UNKNOWN)
 
 if __name__ == "__main__":
     unittest.main()

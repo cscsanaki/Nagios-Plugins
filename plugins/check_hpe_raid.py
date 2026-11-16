@@ -14,7 +14,7 @@
 #   3 UNKNOWN
 #
 import argparse, os, re, shutil, subprocess, sys
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
 TEXT = {OK:"OK", WARNING:"WARNING", CRITICAL:"CRITICAL", UNKNOWN:"UNKNOWN"}
 CANDIDATES=("/usr/sbin/ssacli","/usr/bin/ssacli","/usr/local/bin/ssacli")
@@ -67,8 +67,19 @@ def ldsev(s):
     if s in ("rebuild","recover","rebuilding","recovering"): return WARNING
     return CRITICAL
 
+class NagiosArgumentParser(argparse.ArgumentParser):
+    """Return Nagios UNKNOWN for invalid command-line arguments."""
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        print(
+            f"HPE RAID UNKNOWN: invalid arguments: {message}",
+            file=sys.stderr,
+        )
+        raise SystemExit(UNKNOWN)
+
 def main():
-    p=argparse.ArgumentParser(description="Nagios/Icinga plugin for monitoring HPE Smart Array RAID health via ssacli.")
+    p=NagiosArgumentParser(description="Nagios/Icinga plugin for monitoring HPE Smart Array RAID health via ssacli.")
     p.add_argument("-t","--timeout",type=int,default=30,help="ssacli command timeout in seconds (default: 30)")
     p.add_argument("--ssacli",help="Path to ssacli executable")
     p.add_argument("-V","--version",action="version",version=f"%(prog)s {VERSION}")
@@ -97,5 +108,12 @@ def main():
         return state
     except CheckError as e:
         print(f"HPE RAID UNKNOWN: {e}"); return UNKNOWN
+
+    except Exception as exc:
+        print(
+            f"HPE RAID UNKNOWN: unexpected error: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return UNKNOWN
 
 if __name__ == "__main__": sys.exit(main())

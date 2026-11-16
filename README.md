@@ -11,11 +11,11 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Direct download |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.2/plugins/check_dnf.py) |
+| `check_dnf.py` | 1.2.3 | Release pending |
 | `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
-| `check_hpe_hardware.py` | 1.0.5 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.5/plugins/check_hpe_hardware.py) |
+| `check_hpe_hardware.py` | 1.0.6 | Release pending |
 | `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
-| `check_hpe_raid.py` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py) |
+| `check_hpe_raid.py` | 1.0.1 | Release pending |
 | `check_systemd_health.py` | 1.0.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-systemd-health-v1.0.2/plugins/check_systemd_health.py) |
 | `check_container_health.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-container-health-v1.0.1/plugins/check_container_health.py) |
 | `check_kvm_disk.sh` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-disk-v1.0.1/plugins/check_kvm_disk.sh) |
@@ -50,6 +50,7 @@ Features:
 - Validates reboot-required messages to avoid false CRITICAL alerts from DNF errors
 - Excludes the `Obsoleting Packages` section from update counts
 - Supports package names wrapped across multiple DNF output lines
+- Invalid command-line arguments return Nagios UNKNOWN (3) instead of CRITICAL (2)
 
 Example:
 
@@ -158,6 +159,7 @@ Features:
 - Configurable command timeout
 - Nagios-compatible exit codes
 - NRPE support
+- Invalid command-line arguments and unexpected runtime errors return Nagios UNKNOWN (3)
 
 Example:
 
@@ -230,6 +232,7 @@ Features:
 - Nagios-compatible performance data
 - NRPE support
 - Hardware-independent automated tests
+- Invalid command-line arguments and unexpected runtime errors return Nagios UNKNOWN (3)
 
 Example:
 
@@ -885,7 +888,7 @@ The repository contains automated tests for the plugins.
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-The `check_dnf.py` 1.2.2 test suite contains **43 automated tests** covering
+The `check_dnf.py` 1.2.2 test suite contains **45 automated tests** covering
 package parsing, security updates, reboot detection, reboot reasons,
 kernel-specific reboot reporting, Nagios status handling, performance data,
 command failures, and timeouts.
@@ -902,6 +905,10 @@ bash tests/test_check_librenms_validate.sh
 python3 -m unittest tests/test_check_hpe_hardware.py -v
 ```
 
+The `check_hpe_hardware.py` 1.0.6 test suite contains **32 automated tests**,
+including regression coverage for invalid arguments, timeout validation,
+and unexpected runtime errors.
+
 ### check_ssacli_disks.sh
 
 ```bash
@@ -913,6 +920,9 @@ bash tests/test_check_ssacli_disks.sh
 ```bash
 python3 -m unittest tests/test_check_hpe_raid.py -v
 ```
+
+The `check_hpe_raid.py` 1.0.1 test suite contains **36 automated tests**,
+including regression coverage for invalid arguments and unexpected runtime errors.
 
 ### check_systemd_health.py
 

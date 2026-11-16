@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 DEFAULT_ILOREST_CANDIDATES = (
     "/opt/ilorest/bin/ilorest",
     "/usr/sbin/ilorest",
@@ -211,9 +211,19 @@ def resolve_ilorest(path=None):
         f"iLOrest executable not found (searched: {searched}, PATH)"
     )
 
+class NagiosArgumentParser(argparse.ArgumentParser):
+    """Return Nagios UNKNOWN for invalid command-line arguments."""
+
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        print(
+            f"HPE UNKNOWN: invalid arguments: {message}",
+            file=sys.stderr,
+        )
+        raise SystemExit(UNKNOWN)
 
 def build_parser():
-    parser = argparse.ArgumentParser(
+    parser = NagiosArgumentParser(
         description="Nagios/Icinga plugin for monitoring HPE hardware through HPE iLOrest."
     )
     parser.add_argument(
@@ -290,6 +300,19 @@ def main():
     finally:
         session.logout()
 
+def run_main():
+    """Run the plugin and convert unexpected errors to UNKNOWN."""
+    try:
+        return main()
+    except KeyboardInterrupt:
+        print("HPE UNKNOWN: interrupted")
+        return UNKNOWN
+    except Exception as exc:
+        print(
+            f"HPE UNKNOWN: unexpected error: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return UNKNOWN
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run_main())

@@ -2,6 +2,41 @@
 
 All notable changes to this repository will be documented here.
 
+## check_dnf.py 1.2.3 - 2026-11-16
+
+- Fixed Nagios exit code handling for invalid command-line arguments.
+- Replaced the default argparse exit code 2 (CRITICAL) with Nagios UNKNOWN (3).
+- Added a custom `NagiosArgumentParser` to handle invalid options and parameter values.
+- Preserved normal `--help` and `--version` behavior with exit code 0.
+- Preserved existing package update detection, reboot detection, and performance data.
+- Added two regression tests for invalid arguments and timeout values.
+- Expanded the automated regression suite to 45 tests.
+- Validated with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
+## check_hpe_hardware.py 1.0.6 - 2026-11-16
+
+- Fixed Nagios exit code handling for invalid command-line arguments.
+- Replaced the default argparse exit code 2 (CRITICAL) with Nagios UNKNOWN (3).
+- Added a custom `NagiosArgumentParser` for invalid options and parameter values.
+- Added a protected `run_main()` entry point for unexpected runtime exceptions.
+- Unexpected runtime errors now return UNKNOWN (3) instead of an unhandled traceback.
+- Preserved existing timeout validation, hardware health detection, and IML reporting.
+- Added regression tests for invalid arguments, invalid timeout values, and unexpected runtime errors.
+- Expanded the automated regression suite to 32 tests.
+- Validated with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
+## check_hpe_raid.py 1.0.1 - 2026-11-16
+
+- Fixed Nagios exit code handling for invalid command-line arguments.
+- Replaced the default argparse exit code 2 (CRITICAL) with Nagios UNKNOWN (3).
+- Added a custom `NagiosArgumentParser` for invalid options and parameter values.
+- Added handling for unexpected runtime exceptions.
+- Unexpected runtime errors now return UNKNOWN (3) instead of an unhandled traceback.
+- Preserved existing RAID controller, array, and logical drive health monitoring.
+- Added regression tests for invalid arguments, invalid timeout values, and unexpected runtime errors.
+- Expanded the automated regression suite to 36 tests.
+- Validated with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
 ## check_dnf.py 1.2.2 - 2026-11-16
 
 - Fixed reboot detection to avoid treating every exit code `1` from `dnf needs-restarting -r` as a reboot requirement.

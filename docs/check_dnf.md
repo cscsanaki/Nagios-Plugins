@@ -3,7 +3,7 @@
 `check_dnf.py` is a Nagios/Icinga plugin for monitoring package updates on
 modern DNF-based RHEL-compatible Linux distributions.
 
-Current version: **1.2.2**
+Current version: **1.2.3**
 
 ## Features
 
@@ -694,6 +694,30 @@ If neither DNF nor DNF5 can be found:
 DNF UNKNOWN: dnf executable not found
 ```
 
+### Invalid command-line arguments (v1.2.3)
+
+Version 1.2.3 improves Nagios UNKNOWN exit code handling.
+
+Invalid command-line arguments and parameter values now return
+UNKNOWN (exit code 3) instead of the default argparse exit code 2,
+which Nagios would interpret as CRITICAL.
+
+Examples of invalid arguments:
+
+```bash
+./check_dnf.py --invalid-option
+./check_dnf.py --timeout 0
+./check_dnf.py --timeout abc
+```
+
+These errors return Nagios UNKNOWN (3).
+
+The `--help` and `--version` options continue to exit successfully
+with code 0.
+
+Package update detection, reboot detection, security thresholds,
+and Nagios performance data remain unchanged.
+
 ## Installation
 
 The standard Nagios plugin directory on RHEL-compatible systems is commonly:
@@ -762,7 +786,7 @@ The plugin includes hardware-independent regression tests:
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-Version 1.2.2 currently has **43 automated tests**.
+Version 1.2.2 currently has **45 automated tests**.
 
 The test suite covers:
 
@@ -799,6 +823,8 @@ The test suite covers:
 - CRITICAL on all updates
 - worst applicable Nagios state
 - final Nagios output formatting
+- Invalid command-line argument handling
+- Invalid timeout values returning Nagios UNKNOWN
 
 A successful run ends with:
 

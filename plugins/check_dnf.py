@@ -23,7 +23,7 @@ import subprocess
 import sys
 from typing import List, Optional, Sequence, Tuple
 
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 OK = 0
 WARNING = 1
@@ -609,9 +609,16 @@ class DnfCheck:
             + perfdata,
         )
 
+class NagiosArgumentParser(argparse.ArgumentParser):
+    """Return Nagios UNKNOWN for invalid command-line arguments."""
+
+    def error(self, message: str) -> None:
+        self.print_usage(sys.stderr)
+        print(f"DNF UNKNOWN: invalid arguments: {message}", file=sys.stderr)
+        raise SystemExit(UNKNOWN)
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
+    parser = NagiosArgumentParser(
         description=(
             "Nagios/Icinga plugin for checking "
             "DNF package updates"

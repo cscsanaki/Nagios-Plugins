@@ -3,7 +3,7 @@
 `check_hpe_raid.py` is a Nagios/Icinga plugin for monitoring HPE Smart Array
 RAID health through HPE Smart Storage Administrator CLI (`ssacli`).
 
-Current version: **1.0.0**
+Current version: **1.0.1**
 
 ## Requirements
 
@@ -433,6 +433,33 @@ If no HPE Smart Array controller is discovered:
 HPE RAID UNKNOWN: no HPE Smart Array controllers found
 ```
 
+## Nagios UNKNOWN exit code handling (v1.0.1)
+
+Version 1.0.1 improves error handling for invalid command-line arguments and unexpected runtime exceptions.
+
+Invalid command-line arguments now return Nagios UNKNOWN (exit code 3) instead of the default argparse exit code 2, which Nagios would interpret as CRITICAL.
+
+Examples:
+
+```bash
+./check_hpe_raid.py --invalid-option
+./check_hpe_raid.py --timeout abc
+```
+
+Both commands return UNKNOWN (3).
+
+Unexpected runtime exceptions are also handled and reported as UNKNOWN (3) instead of terminating with an unhandled traceback.
+
+Example diagnostic output:
+
+```text
+HPE RAID UNKNOWN: unexpected error: OSError: simulated filesystem error
+```
+
+The `--help` and `--version` options continue to exit with code 0.
+
+Existing RAID controller, array, and logical drive health monitoring remains unchanged.
+
 ## Automated tests
 
 The plugin includes hardware-independent unit tests:
@@ -441,7 +468,7 @@ The plugin includes hardware-independent unit tests:
 python3 -m unittest tests/test_check_hpe_raid.py -v
 ```
 
-The current test suite contains **33 tests**.
+The current test suite contains **36 tests**.
 
 The tests cover:
 
@@ -477,6 +504,9 @@ The tests cover:
 - multiple controllers
 - worst-severity preservation
 - Nagios performance data
+- Invalid command-line arguments returning Nagios UNKNOWN
+- Invalid timeout values returning Nagios UNKNOWN
+- Unexpected runtime exceptions returning Nagios UNKNOWN
 
 The tests do not require HPE hardware or an installed `ssacli` package.
 
