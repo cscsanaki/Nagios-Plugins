@@ -300,6 +300,19 @@ def main():
     finally:
         session.logout()
 
+def run_main():
+    """Run the plugin and convert unexpected errors to UNKNOWN."""
+    try:
+        return main()
+    except KeyboardInterrupt:
+        print("HPE UNKNOWN: interrupted")
+        return UNKNOWN
+    except Exception as exc:
+        print(
+            f"HPE UNKNOWN: unexpected error: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        return UNKNOWN
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run_main())
