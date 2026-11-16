@@ -76,6 +76,30 @@ podman.x86_64    6:5.8.2-7.el9_8    appstream
         )
 
 
+    def test_obsoleting_packages_not_double_counted(self):
+        output = """
+podman.x86_64          5.0-1.el9       appstream
+rsyslog.x86_64         8.0-1.el9       baseos
+
+Obsoleting Packages
+podman.x86_64          5.0-1.el9       appstream
+old-package.x86_64     1.0-1.el9       baseos
+"""
+        self.assertEqual(
+            check_dnf.DnfCheck.package_names(output),
+            {"podman.x86_64", "rsyslog.x86_64"},
+        )
+
+    def test_wrapped_package_name_is_counted(self):
+        output = """
+very-long-package-name-with-many-components.x86_64
+    1.2.3-4.el9                  appstream
+"""
+        self.assertEqual(
+            check_dnf.DnfCheck.package_names(output),
+            {"very-long-package-name-with-many-components.x86_64"},
+        )
+
 class TestKernelSecurityStatus(unittest.TestCase):
 
     def test_kernel_security_status(self):
@@ -374,6 +398,19 @@ Reboot is required to fully utilize these updates.
         self.assertIsNone(reboot)
         self.assertEqual(reasons, [])
 
+    @patch.object(check_dnf.subprocess, "run")
+    def test_dnf_error_is_not_reboot_required(self, mock_run):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["dnf"],
+            returncode=1,
+            stdout="Error: No such command: needs-restarting",
+        )
+
+        checker = self.make_checker()
+        reboot, reasons = checker.reboot_required()
+
+        self.assertIsNone(reboot)
+        self.assertEqual(reasons, [])
 
 class TestNagiosStatusLogic(unittest.TestCase):
 
