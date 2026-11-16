@@ -506,6 +506,53 @@ HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
         self.assertEqual(rc, hpe.CRITICAL)
         self.assertIn("Capacitor:Failed", output)
         self.assertIn("problems=1", output)
+       
+    def test_degraded_cache_returns_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Degraded
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.WARNING)
+        self.assertIn("Cache:Degraded", output)
+        self.assertIn("problems=1", output)
+
+    def test_recharging_capacitor_returns_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Recharging
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.WARNING)
+        self.assertIn("Capacitor:Recharging", output)
+        self.assertIn("problems=1", output)
+
+    def test_failed_cache_takes_priority_over_capacitor_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+   Battery/Capacitor Status: Recharging
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Cache:Failed", output)
+        self.assertIn("Capacitor:Recharging", output)
+        self.assertIn("problems=2", output)
 
 class TestMainErrors(unittest.TestCase):
 
