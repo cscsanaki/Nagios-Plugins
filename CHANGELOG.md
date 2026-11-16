@@ -2,6 +2,20 @@
 
 All notable changes to this repository will be documented here.
 
+## check_dnf.py 1.2.2 - 2026-11-16
+
+- Fixed reboot detection to avoid treating every exit code `1` from `dnf needs-restarting -r` as a reboot requirement.
+- Added validation of reboot-required messages before reporting a reboot requirement.
+- Added fallback handling when the primary reboot check fails or returns unrecognized output.
+- Prevented DNF command errors from causing false reboot-required CRITICAL alerts.
+- Excluded the `Obsoleting Packages` section from available package update counts.
+- Added support for package names wrapped onto a separate line from version and repository information.
+- Preserved standard package parsing and duplicate package detection.
+- Preserved existing security-kernel and component-specific reboot reporting.
+- Added three regression tests covering DNF command errors, obsoleting package sections, and wrapped package names.
+- Expanded the `check_dnf.py` regression suite to 43 tests.
+- Validated the test suite with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
 ## check_hpe_hardware.py 1.0.5 - 2026-11-16
 
 - Fixed Integrated Management Log (IML) output formatting for Nagios/Icinga.
