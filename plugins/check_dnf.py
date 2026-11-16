@@ -172,41 +172,66 @@ class DnfCheck:
     @staticmethod
     def package_names(output: str) -> set:
         """
-        Extract package NEVRA/name.arch entries from `dnf check-update` output.
+        Extract package name.arch entries from DNF check-update output.
 
-        DNF check-update package rows normally contain:
-            package.arch    version-release    repository
-
-        Informational/status lines are ignored.
+        Handles standard and wrapped package rows. The separate
+        Obsoleting Packages section is excluded to avoid counting
+        replacement information as additional available updates.
         """
         packages = set()
 
         ignored_prefixes = (
             "last metadata expiration check:",
             "metadata cache created",
-            "obsoleting packages",
             "security:",
         )
 
         pkg_re = re.compile(
-            r"^\s*(?P<pkg>[A-Za-z0-9_+.-]+\."
-            r"(?:x86_64|noarch|aarch64|ppc64le|s390x|i[3-6]86))"
-            r"\s+\S+\s+\S+"
+            r"^(?P<pkg>[A-Za-z0-9_+.-]+\."
+            r"(?:x86_64|noarch|aarch64|ppc64le|s390x|i[3-6]86))$"
         )
+
+        in_obsoleting = False
+        pending_package = None
 
         for raw_line in output.splitlines():
             line = raw_line.strip()
 
             if not line:
+                pending_package = None
                 continue
 
-            if line.lower().startswith(ignored_prefixes):
+            lower = line.lower()
+
+            if lower == "obsoleting packages":
+                in_obsoleting = True
+                pending_package = None
                 continue
 
-            match = pkg_re.match(raw_line)
+            if in_obsoleting:
+                continue
 
-            if match:
-                packages.add(match.group("pkg"))
+            if lower.startswith(ignored_prefixes):
+                pending_package = None
+                continue
+
+            fields = line.split()
+
+            if len(fields) >= 3 and pkg_re.fullmatch(fields[0]):
+                packages.add(fields[0])
+                pending_package = None
+                continue
+
+            if len(fields) == 1 and pkg_re.fullmatch(fields[0]):
+                pending_package = fields[0]
+                continue
+
+            if pending_package and len(fields) >= 2:
+                packages.add(pending_package)
+                pending_package = None
+                continue
+
+            pending_package = None
 
         return packages
 
@@ -389,7 +414,25 @@ class DnfCheck:
                 return False, []
 
             if result.returncode == 1:
-                return True, self.reboot_reasons(output)
+                lower = output.lower()
+
+                reboot_markers = (
+                    "reboot is required",
+                    "reboot is necessary",
+                    "reboot required",
+                    "reboot is needed",
+                )
+
+                if any(marker in lower for marker in reboot_markers):
+                    return True, self.reboot_reasons(output)
+
+                self.debug(
+                    1,
+                    "reboot check returned exit code 1 without "
+                    "a recognized reboot-required message: "
+                    + clean_message(output),
+                )
+                continue
 
             self.debug(
                 1,
