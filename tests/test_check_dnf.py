@@ -3,7 +3,7 @@ import io
 import pathlib
 import subprocess
 import unittest
-import sy
+import sys
 from contextlib import redirect_stdout
 from unittest.mock import patch
 
