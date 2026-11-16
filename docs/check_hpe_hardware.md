@@ -3,7 +3,7 @@
 `check_hpe_hardware.py` is a Nagios/Icinga plugin for monitoring HPE server
 hardware through the local HPE iLOrest CLI.
 
-Current version: **1.0.4**
+Current version: **1.0.5**
 
 ## Tested environments
 
@@ -348,6 +348,32 @@ and only then falls back to `dmidecode`.
 When a WARNING or CRITICAL hardware state is detected, the plugin requests the
 iLO Integrated Management Log (IML) and appends the last three relevant
 entries to the monitoring output.
+
+
+### IML output formatting (v1.0.5)
+
+Version 1.0.5 improves the formatting of Integrated Management Log (IML) information in Nagios/Icinga output.
+
+IML details are appended to the human-readable plugin status text using `; IML Logs:` instead of the Nagios performance data separator (`|`).
+
+Example:
+
+```text
+HPE CRITICAL: hardware health degraded; IML Logs: Memory failure detected
+```
+
+If IML retrieval fails, the diagnostic message also remains part of the status text:
+
+```text
+HPE CRITICAL: hardware health degraded; IML Logs: unable to retrieve detailed IML logs (CHIF unavailable)
+```
+
+This prevents IML messages from being interpreted as Nagios performance data.
+
+The change does not modify hardware health detection, severity mapping, or Nagios exit codes.
+
+Two regression tests verify the formatting of successful and failed IML retrieval.
+
 
 ANSI terminal colour sequences are removed from IML text.
 
