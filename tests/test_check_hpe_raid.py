@@ -461,6 +461,59 @@ class TestMainErrors(unittest.TestCase):
             "HPE RAID UNKNOWN: ssacli executable not found",
         )
 
+class TestNagiosExitCodes(unittest.TestCase):
+    """Verify Nagios UNKNOWN exit codes for CLI and runtime errors."""
+
+    def run_plugin(self, *arguments):
+        return subprocess.run(
+            [sys.executable, str(PLUGIN), *arguments],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+
+    def test_unknown_argument_returns_unknown(self):
+        result = self.run_plugin("--invalid-option")
+
+        self.assertEqual(
+            result.returncode,
+            hpe.UNKNOWN,
+            msg=result.stdout + result.stderr,
+        )
+
+    def test_invalid_timeout_returns_unknown(self):
+        result = self.run_plugin("--timeout", "0")
+
+        self.assertEqual(
+            result.returncode,
+            hpe.UNKNOWN,
+            msg=result.stdout + result.stderr,
+        )
+
+    def test_unexpected_runtime_error_returns_unknown(self):
+        stdout = io.StringIO()
+
+        with patch.object(
+            hpe,
+            "resolve",
+            side_effect=OSError("simulated filesystem error"),
+        ), patch.object(
+            sys,
+            "argv",
+            ["check_hpe_raid.py"],
+        ), redirect_stdout(stdout):
+
+            try:
+                result = hpe.main()
+            except OSError:
+                self.fail(
+                    "Unexpected OSError escaped from main()"
+                )
+
+        self.assertEqual(result, hpe.UNKNOWN)
+        self.assertIn("HPE RAID UNKNOWN:", stdout.getvalue())
 
 if __name__ == "__main__":
     unittest.main()
