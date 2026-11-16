@@ -11,7 +11,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Direct download |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.1/plugins/check_dnf.py) |
+| `check_dnf.py` | 1.2.2 | Release pending |
 | `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
 | `check_hpe_hardware.py` | 1.0.5 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.5/plugins/check_hpe_hardware.py) |
 | `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
@@ -47,6 +47,9 @@ Features:
 - Configurable command timeout
 - Nagios-compatible OK, WARNING, CRITICAL, and UNKNOWN exit codes
 - No third-party Python modules required
+- Validates reboot-required messages to avoid false CRITICAL alerts from DNF errors
+- Excludes the `Obsoleting Packages` section from update counts
+- Supports package names wrapped across multiple DNF output lines
 
 Example:
 
@@ -75,6 +78,18 @@ DNF CRITICAL: 0 security updates, 0 non-security updates, 0 total, reboot requir
 Version 1.2.1 extracts reboot reasons from `dnf needs-restarting -r`. If a
 security-kernel mismatch is also available, the kernel-specific reboot
 information takes priority.
+
+Version 1.2.2 improves reboot detection and package update parsing.
+
+The plugin now verifies reboot-required messages instead of relying only on
+the exit code of `dnf needs-restarting -r`. DNF command errors no longer
+automatically trigger false reboot-required CRITICAL alerts.
+
+Package parsing now excludes the `Obsoleting Packages` section and supports
+package names wrapped onto separate lines.
+
+The release includes **43 automated regression tests**, validated with
+Python 3.9, 3.11, and 3.13.
 
 See [docs/check_dnf.md](docs/check_dnf.md) for detailed documentation.
 
@@ -526,6 +541,9 @@ Latest released version:
 curl -L -o check_dnf.py \
   https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.1/plugins/check_dnf.py
 
+Version 1.2.2 is currently being prepared. The download command above
+retrieves the latest published release (v1.2.1).
+
 chmod +x check_dnf.py
 ```
 
@@ -870,7 +888,7 @@ The repository contains automated tests for the plugins.
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-The `check_dnf.py` 1.2.1 test suite contains **40 automated tests** covering
+The `check_dnf.py` 1.2.2 test suite contains **43 automated tests** covering
 package parsing, security updates, reboot detection, reboot reasons,
 kernel-specific reboot reporting, Nagios status handling, performance data,
 command failures, and timeouts.
