@@ -14,7 +14,7 @@
 #   3 UNKNOWN
 #
 import argparse, os, re, shutil, subprocess, sys
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
 TEXT = {OK:"OK", WARNING:"WARNING", CRITICAL:"CRITICAL", UNKNOWN:"UNKNOWN"}
 CANDIDATES=("/usr/sbin/ssacli","/usr/bin/ssacli","/usr/local/bin/ssacli")
