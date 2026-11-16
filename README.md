@@ -11,7 +11,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Direct download |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.2 | Release pending |
+| `check_dnf.py` | 1.2.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.2/plugins/check_dnf.py) |
 | `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
 | `check_hpe_hardware.py` | 1.0.5 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.5/plugins/check_hpe_hardware.py) |
 | `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
@@ -539,10 +539,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_dnf.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.1/plugins/check_dnf.py
-
-Version 1.2.2 is currently being prepared. The download command above
-retrieves the latest published release (v1.2.1).
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.2/plugins/check_dnf.py
 
 chmod +x check_dnf.py
 ```
