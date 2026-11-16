@@ -22,7 +22,7 @@ import shutil
 import subprocess
 import sys
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
 
