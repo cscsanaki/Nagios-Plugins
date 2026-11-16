@@ -250,7 +250,6 @@ class TestSsacliDiscovery(unittest.TestCase):
             "/usr/sbin/ssacli",
         )
 
-
 class TestMainStatusLogic(unittest.TestCase):
 
     def run_main(self, controller_output, logical_outputs):
@@ -478,6 +477,35 @@ array C (OK)
         self.assertIn("logical_drives=3", output)
         self.assertIn("problems=0", output)
 
+    def test_failed_cache_returns_critical(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Cache:Failed", output)
+        self.assertIn("problems=1", output)
+
+    def test_failed_capacitor_returns_critical(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Failed
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Capacitor:Failed", output)
+        self.assertIn("problems=1", output)
 
 class TestMainErrors(unittest.TestCase):
 
