@@ -3,7 +3,7 @@
 `check_dnf.py` is a Nagios/Icinga plugin for monitoring package updates on
 modern DNF-based RHEL-compatible Linux distributions.
 
-Current version: **1.2.1**
+Current version: **1.2.2**
 
 ## Features
 
@@ -383,6 +383,23 @@ total updates
 
 Duplicate package entries are counted only once.
 
+### Package parsing improvements (v1.2.2)
+
+Version 1.2.2 improves package parsing for `dnf check-update` output.
+
+- Excludes entries under the `Obsoleting Packages` section from the available update count.
+- Supports package names wrapped onto a separate line from their version and repository information.
+- Preserves standard package parsing and duplicate package detection.
+
+Example of a wrapped package entry:
+
+```text
+very-long-package-name-with-many-components.x86_64
+    1.2.3-4.el9                  appstream
+```
+
+The example above is counted as one available package update.
+
 ## Reboot detection
 
 Unless disabled with:
@@ -416,6 +433,29 @@ contains:
 ```text
 reboot status unavailable
 ```
+
+### Reboot error handling (v1.2.2)
+
+Version 1.2.2 no longer treats every exit code `1` from
+`dnf needs-restarting -r` as proof that a reboot is required.
+
+The plugin now checks the command output for a recognized
+reboot-required message before reporting a reboot requirement.
+
+If the command exits with code `1` without a recognized reboot
+message, the plugin attempts the available fallback command.
+
+If neither command provides a reliable result, the reboot status
+is reported as unavailable instead of incorrectly reporting
+`reboot required`.
+
+Example:
+
+```text
+Error: No such command: needs-restarting
+```
+
+This output must not trigger a reboot-required CRITICAL state.
 
 ## Reboot reason reporting
 
@@ -722,7 +762,7 @@ The plugin includes hardware-independent regression tests:
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-Version 1.2.1 currently has **40 automated tests**.
+Version 1.2.2 currently has **43 automated tests**.
 
 The test suite covers:
 
