@@ -278,6 +278,42 @@ def main():
                 state = max(state, CRITICAL)
                 problems += 1
 
+            # Evaluate controller cache and battery/capacitor health.
+            # Missing fields are permitted because not all controllers
+            # expose these components.
+            component_details = []
+
+            for field, label in (
+                ("cache_status", "Cache"),
+                ("capacitor_status", "Capacitor"),
+            ):
+                value = c.get(field)
+
+                if value is None:
+                    continue
+
+                normalized = value.strip().lower()
+
+                if normalized in ("ok", "not applicable", "n/a"):
+                    component_state = OK
+                elif normalized in (
+                    "degraded",
+                    "recharging",
+                    "charging",
+                    "recovering",
+                ):
+                    component_state = WARNING
+                else:
+                    component_state = CRITICAL
+
+                state = max(state, component_state)
+
+                if component_state != OK:
+                    problems += 1
+                    component_details.append(
+                        f"{label}:{value}"
+                    )
+
             raw = run(
                 [
                     b,
@@ -327,14 +363,20 @@ def main():
                     )
                 )
 
-            summaries.append(
+            # Include cache and capacitor problems in status output.
+            controller_summary = (
                 f"{c['model']}[{c['status'] or 'UNKNOWN'}]"
-                + (
-                    f": {', '.join(parts)}"
-                    if parts
-                    else ""
-                )
             )
+
+            if component_details:
+                controller_summary += (
+                    "[" + ", ".join(component_details) + "]"
+                )
+
+            if parts:
+                controller_summary += ": " + ", ".join(parts)
+
+            summaries.append(controller_summary)
 
         print(
             f"HPE RAID {TEXT[state]}: "
