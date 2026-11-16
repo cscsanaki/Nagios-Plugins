@@ -2,6 +2,23 @@
 
 All notable changes to this repository will be documented here.
 
+## check_hpe_raid.py 1.0.2 - 2026-11-16
+
+- Added monitoring of HPE Smart Array controller cache health.
+- Added monitoring of battery/capacitor health, including `Battery/Capacitor Status`, `Battery Status`, and `Capacitor Status`.
+- Added independent severity evaluation for controller cache and battery/capacitor components.
+- Added WARNING handling for `Degraded`, `Recharging`, `Charging`, and `Recovering` component states.
+- Added CRITICAL handling for failed and unrecognized component states.
+- Added affected cache and battery/capacitor components to the human-readable Nagios status output.
+- Updated the `problems` performance counter to include cache and battery/capacitor problems.
+- Fixed logical drive parsing for recovery and rebuild progress percentages, such as `Recovering, 45% complete`.
+- Prevented recovery progress information from being incorrectly interpreted as a logical drive status.
+- Preserved existing controller, array, and logical drive health monitoring.
+- Preserved CRITICAL precedence over WARNING when multiple component problems are present.
+- Added nine regression tests covering component parsing, severity evaluation, recovery progress, and problem counters.
+- Expanded the HPE RAID regression suite from 36 to 45 tests.
+- Validated all 45 tests with Python 3.9, 3.11, and 3.13 in GitHub Actions.
+
 ## check_dnf.py 1.2.3 - 2026-11-16
 
 - Fixed Nagios exit code handling for invalid command-line arguments.

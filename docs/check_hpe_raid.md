@@ -3,7 +3,7 @@
 `check_hpe_raid.py` is a Nagios/Icinga plugin for monitoring HPE Smart Array
 RAID health through HPE Smart Storage Administrator CLI (`ssacli`).
 
-Current version: **1.0.1**
+Current version: **1.0.2**
 
 ## Requirements
 
@@ -460,6 +460,59 @@ The `--help` and `--version` options continue to exit with code 0.
 
 Existing RAID controller, array, and logical drive health monitoring remains unchanged.
 
+## Controller health and recovery parsing (v1.0.2)
+
+Version 1.0.2 extends HPE Smart Array monitoring to include controller cache and battery/capacitor health.
+
+### Controller component monitoring
+
+The plugin now parses the following `ssacli` fields when available:
+
+- `Controller Status`
+- `Cache Status`
+- `Battery/Capacitor Status`
+- `Battery Status`
+- `Capacitor Status`
+
+Cache and battery/capacitor health states are evaluated independently of the overall controller status.
+
+| Component status | Nagios state |
+|---|---|
+| OK, Not Applicable, N/A | OK (0) |
+| Degraded, Recharging, Charging, Recovering | WARNING (1) |
+| Failed or other unrecognized states | CRITICAL (2) |
+
+Missing component fields are ignored because not all HPE Smart Array controllers expose the same hardware information.
+
+Affected components are included in the human-readable Nagios output.
+
+Example:
+
+```text
+HPE RAID CRITICAL: HPE Smart Array P408i-a SR Gen10[OK][Cache:Failed, Capacitor:Recharging]: Array A(OK)[LUN1:OK] | controllers=1 arrays=1 logical_drives=1 problems=2
+```
+
+### Logical drive recovery progress
+
+The logical drive parser now recognizes recovery and rebuild progress information without treating the progress percentage as a separate drive status.
+
+Examples:
+
+```text
+logicaldrive 1 (447.1 GB, RAID 1, Recovering, 45% complete)
+logicaldrive 2 (1.8 TB, RAID 5, Rebuilding, 80% complete)
+```
+
+Both logical drives are reported as WARNING (1), rather than incorrectly being classified as CRITICAL.
+
+### Monitoring behavior
+
+- Existing controller, array, and logical drive monitoring is preserved.
+- Cache and battery/capacitor failures contribute to the `problems` performance counter.
+- Degraded and recharging components produce WARNING.
+- CRITICAL takes precedence over WARNING when multiple component problems are detected.
+- Existing Nagios exit codes and command-line options remain unchanged.
+
 ## Automated tests
 
 The plugin includes hardware-independent unit tests:
@@ -468,7 +521,7 @@ The plugin includes hardware-independent unit tests:
 python3 -m unittest tests/test_check_hpe_raid.py -v
 ```
 
-The current test suite contains **36 tests**.
+The current test suite contains **45 tests**.
 
 The tests cover:
 
@@ -507,6 +560,11 @@ The tests cover:
 - Invalid command-line arguments returning Nagios UNKNOWN
 - Invalid timeout values returning Nagios UNKNOWN
 - Unexpected runtime exceptions returning Nagios UNKNOWN
+- Controller cache status parsing and severity evaluation
+- Battery/capacitor status parsing and severity evaluation
+- Logical drive recovery and rebuild progress parsing
+- WARNING and CRITICAL precedence for multiple component problems
+- Nagios diagnostic output and problem counter validation
 
 The tests do not require HPE hardware or an installed `ssacli` package.
 

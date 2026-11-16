@@ -15,7 +15,7 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 | `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
 | `check_hpe_hardware.py` | 1.0.6 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.6/plugins/check_hpe_hardware.py) |
 | `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
-| `check_hpe_raid.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.1/plugins/check_hpe_raid.py) |
+| `check_hpe_raid.py` | 1.0.2 | Release pending |
 | `check_systemd_health.py` | 1.0.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-systemd-health-v1.0.2/plugins/check_systemd_health.py) |
 | `check_container_health.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-container-health-v1.0.1/plugins/check_container_health.py) |
 | `check_kvm_disk.sh` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-disk-v1.0.1/plugins/check_kvm_disk.sh) |
@@ -233,12 +233,33 @@ Features:
 - NRPE support
 - Hardware-independent automated tests
 - Invalid command-line arguments and unexpected runtime errors return Nagios UNKNOWN (3)
+- Controller cache health monitoring
+- Battery/capacitor health monitoring
+- WARNING and CRITICAL severity evaluation for controller components
+- Logical drive recovery and rebuild progress parsing
+- Detailed cache and capacitor diagnostics in Nagios output
 
 Example:
 
 ```bash
 ./check_hpe_raid.py
 ```
+
+Version 1.0.2 extends HPE Smart Array monitoring with controller cache
+and battery/capacitor health checks.
+
+The plugin now reports degraded or recharging components as WARNING
+and failed components as CRITICAL. Recovery and rebuild progress
+percentages are also parsed correctly.
+
+Example:
+
+```text
+HPE RAID CRITICAL: HPE Smart Array P408i-a SR Gen10[OK][Cache:Failed, Capacitor:Recharging]: Array A(OK)[LUN1:OK] | controllers=1 arrays=1 logical_drives=1 problems=2
+```
+
+The release includes **45 automated regression tests**, validated with
+Python 3.9, 3.11, and 3.13.
 
 See [docs/check_hpe_raid.md](docs/check_hpe_raid.md) for detailed documentation.
 
@@ -682,6 +703,10 @@ sudo chmod 755 /usr/lib64/nagios/plugins/check_ssacli_disks.sh
 sudo cp check_hpe_raid.py /usr/lib64/nagios/plugins/
 sudo chmod 755 /usr/lib64/nagios/plugins/check_hpe_raid.py
 ```
+
+The `check_hpe_raid.py` 1.0.2 test suite contains **45 automated tests**,
+covering controller cache, battery/capacitor health, logical drive
+recovery progress, severity precedence, and Nagios exit codes.
 
 ### check_systemd_health.py
 

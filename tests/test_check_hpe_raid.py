@@ -69,6 +69,29 @@ HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
         self.assertEqual(len(result), 1)
         self.assertIsNone(result[0]["status"])
 
+    def test_failed_cache_status_is_detected(self):
+        output = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+"""
+        result = hpe.controllers(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["status"], "OK")
+        self.assertEqual(result[0]["cache_status"], "Failed")
+
+    def test_failed_capacitor_status_is_detected(self):
+        output = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Failed
+"""
+        result = hpe.controllers(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["status"], "OK")
+        self.assertEqual(result[0]["capacitor_status"], "Failed")
 
 class TestArrayParsing(unittest.TestCase):
 
@@ -114,7 +137,32 @@ array A
 
         self.assertEqual(result[0]["status"], "OK")
 
+    def test_recovering_with_progress_is_parsed(self):
+        output = """
+array A (OK)
 
+   logicaldrive 1 (447.1 GB, RAID 1, Recovering, 45% complete)
+"""
+        result = hpe.arrays(output)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["lds"][0]["id"], "1")
+        self.assertEqual(
+            result[0]["lds"][0]["status"],
+            "Recovering",
+        )
+
+    def test_recovering_with_progress_returns_warning(self):
+        output = """
+array A (OK)
+
+   logicaldrive 1 (447.1 GB, RAID 1, Recovering, 45% complete)
+"""
+        result = hpe.arrays(output)
+        status = result[0]["lds"][0]["status"]
+
+        self.assertEqual(hpe.ldsev(status), hpe.WARNING)
+       
 class TestLogicalDriveSeverity(unittest.TestCase):
 
     def test_ok(self):
@@ -201,7 +249,6 @@ class TestSsacliDiscovery(unittest.TestCase):
             hpe.resolve(None),
             "/usr/sbin/ssacli",
         )
-
 
 class TestMainStatusLogic(unittest.TestCase):
 
@@ -430,6 +477,82 @@ array C (OK)
         self.assertIn("logical_drives=3", output)
         self.assertIn("problems=0", output)
 
+    def test_failed_cache_returns_critical(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Cache:Failed", output)
+        self.assertIn("problems=1", output)
+
+    def test_failed_capacitor_returns_critical(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Failed
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Capacitor:Failed", output)
+        self.assertIn("problems=1", output)
+       
+    def test_degraded_cache_returns_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Degraded
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.WARNING)
+        self.assertIn("Cache:Degraded", output)
+        self.assertIn("problems=1", output)
+
+    def test_recharging_capacitor_returns_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Battery/Capacitor Status: Recharging
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.WARNING)
+        self.assertIn("Capacitor:Recharging", output)
+        self.assertIn("problems=1", output)
+
+    def test_failed_cache_takes_priority_over_capacitor_warning(self):
+        controller = """
+HPE Smart Array P408i-a SR Gen10 in Slot 0 (Embedded)
+   Controller Status: OK
+   Cache Status: Failed
+   Battery/Capacitor Status: Recharging
+"""
+        rc, output = self.run_main(
+            controller,
+            {"0": ARRAYS_OK},
+        )
+
+        self.assertEqual(rc, hpe.CRITICAL)
+        self.assertIn("Cache:Failed", output)
+        self.assertIn("Capacitor:Recharging", output)
+        self.assertIn("problems=2", output)
 
 class TestMainErrors(unittest.TestCase):
 
