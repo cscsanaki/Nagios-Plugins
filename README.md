@@ -575,7 +575,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_ssacli_disks.sh \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.1/plugins/check_ssacli_disks.sh
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh
 
 chmod +x check_ssacli_disks.sh
 ```
@@ -586,7 +586,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_hpe_raid.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.0/plugins/check_hpe_raid.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.1/plugins/check_hpe_raid.py
 
 chmod +x check_hpe_raid.py
 ```
@@ -888,7 +888,7 @@ The repository contains automated tests for the plugins.
 python3 -m unittest tests/test_check_dnf.py -v
 ```
 
-The `check_dnf.py` 1.2.2 test suite contains **45 automated tests** covering
+The `check_dnf.py` 1.2.3 test suite contains **45 automated tests** covering
 package parsing, security updates, reboot detection, reboot reasons,
 kernel-specific reboot reporting, Nagios status handling, performance data,
 command failures, and timeouts.
