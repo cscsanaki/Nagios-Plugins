@@ -269,12 +269,18 @@ local CHIF interface.
 
 Use a narrowly scoped sudoers rule that permits only the plugin itself.
 
+Security: The sudoers rule must restrict the plugin to execution without command-line arguments. The trailing "" prevents the NRPE account from passing arbitrary options, including --ilorest, which could otherwise select an unintended executable running with root privileges.
+
+The plugin and its parent directories must be owned by trusted administrators and must not be writable by the NRPE account. Verify that no other sudoers rule grants broader access. Custom executable paths should only be configured through administrator-controlled, reviewed configurations.
+
+These examples must also be applied to the actual monitored servers; updating this documentation does not change existing sudoers permissions.
+
 ### RHEL / Rocky Linux
 
 Example sudoers rule when NRPE runs as `nrpe`:
 
 ```text
-nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_hardware.py
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_hardware.py ""
 ```
 
 Example NRPE command:
@@ -296,7 +302,7 @@ On the tested Debian 12 systems, NRPE runs as the `nagios` user.
 Example sudoers rule:
 
 ```text
-nagios ALL=(root) NOPASSWD: /usr/lib/nagios/plugins/check_hpe_hardware.py
+nagios ALL=(root) NOPASSWD: /usr/lib/nagios/plugins/check_hpe_hardware.py ""
 ```
 
 Example NRPE command:

@@ -727,7 +727,13 @@ command[check_librenms_validate]=/usr/lib64/nagios/plugins/check_librenms_valida
 ### HPE hardware
 
 ```text
-command[check_hpe_hardware]=/usr/lib64/nagios/plugins/check_hpe_hardware.py
+command[check_hpe_hardware]=sudo -n /usr/lib64/nagios/plugins/check_hpe_hardware.py
+```
+
+Sudoers rule:
+
+```text
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_hardware.py ""
 ```
 
 ### HPE physical disks
@@ -739,8 +745,20 @@ command[check_ssacli_disks]=/usr/lib64/nagios/plugins/check_ssacli_disks.sh
 ### HPE RAID
 
 ```text
-command[check_hpe_raid]=/usr/lib64/nagios/plugins/check_hpe_raid.py
+command[check_hpe_raid]=sudo -n /usr/lib64/nagios/plugins/check_hpe_raid.py
 ```
+
+Sudoers rule:
+
+```text
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_raid.py ""
+```
+
+**Security note:** The sudoers examples restrict the HPE plugins to execution without command-line arguments using the trailing `""`. This prevents the NRPE account from supplying arbitrary executable paths through `--ilorest` or `--ssacli`.
+
+The plugin files and their parent directories must not be writable by the NRPE account. Verify that no other sudoers rule grants broader permissions.
+
+The `sudo -n` option prevents interactive password prompts. These restrictions must also be applied on the monitored servers; updating the README alone does not change existing permissions.
 
 ### systemd health
 

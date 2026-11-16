@@ -317,7 +317,7 @@ Use a narrowly scoped sudoers rule rather than unrestricted sudo access.
 Example:
 
 ```text
-nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_raid.py
+nrpe ALL=(root) NOPASSWD: /usr/lib64/nagios/plugins/check_hpe_raid.py ""
 ```
 
 Validate the sudoers configuration:
@@ -325,6 +325,13 @@ Validate the sudoers configuration:
 ```bash
 sudo visudo -c
 ```
+Security: The trailing "" in the sudoers rule restricts the plugin to execution without command-line arguments. This prevents the NRPE account from using --ssacli to select an arbitrary executable with root privileges.
+
+The plugin executable and all parent directories must be owned by trusted administrators and must not be writable by the NRPE account. Verify that no other sudoers rule grants broader access.
+
+If custom command-line arguments are required, use a separately reviewed and tightly restricted sudoers configuration rather than removing the argument restriction.
+
+Updating this documentation does not change the permissions on already deployed monitoring servers.
 
 Example NRPE command:
 
