@@ -4,6 +4,9 @@ import pathlib
 import subprocess
 import unittest
 from unittest.mock import patch
+import io
+import sys
+from contextlib import redirect_stderr, redirect_stdout
 
 PLUGIN = pathlib.Path(__file__).resolve().parents[1] / "plugins" / "check_hpe_hardware.py"
 spec = importlib.util.spec_from_file_location("check_hpe_hardware", PLUGIN)
@@ -385,6 +388,38 @@ Event four
         self.assertIn("CHIF unavailable", result)
         self.assertNotIn("| IML Logs:", result)
         self.assertNotIn("|", result)
+
+class TestNagiosArgumentErrors(unittest.TestCase):
+    """Invalid CLI arguments must return Nagios UNKNOWN (3)."""
+
+    def run_plugin(self, *arguments):
+        result = subprocess.run(
+            [sys.executable, str(PLUGIN), *arguments],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+        return result
+
+    def test_unknown_argument_returns_unknown(self):
+        result = self.run_plugin("--invalid-option")
+
+        self.assertEqual(
+            result.returncode,
+            3,
+            msg=result.stdout + result.stderr,
+        )
+
+    def test_invalid_timeout_returns_unknown(self):
+        result = self.run_plugin("--timeout", "0")
+
+        self.assertEqual(
+            result.returncode,
+            3,
+            msg=result.stdout + result.stderr,
+        )
 
 if __name__ == "__main__":
     unittest.main()
