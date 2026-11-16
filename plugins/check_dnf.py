@@ -23,7 +23,7 @@ import subprocess
 import sys
 from typing import List, Optional, Sequence, Tuple
 
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 OK = 0
 WARNING = 1
