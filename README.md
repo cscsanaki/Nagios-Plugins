@@ -11,11 +11,11 @@ A collection of Python and Bash Nagios/Icinga monitoring plugins for Linux syste
 
 | Plugin | Version | Direct download |
 | --- | ---: | --- |
-| `check_dnf.py` | 1.2.3 | Release pending |
+| `check_dnf.py` | 1.2.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.3/plugins/check_dnf.py) |
 | `check_librenms_validate` | 1.0.3 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-librenms-validate-v1.0.3/plugins/check_librenms_validate) |
-| `check_hpe_hardware.py` | 1.0.6 | Release pending |
+| `check_hpe_hardware.py` | 1.0.6 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.6/plugins/check_hpe_hardware.py) |
 | `check_ssacli_disks.sh` | 1.0.0 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh) |
-| `check_hpe_raid.py` | 1.0.1 | Release pending |
+| `check_hpe_raid.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-raid-v1.0.1/plugins/check_hpe_raid.py) |
 | `check_systemd_health.py` | 1.0.2 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-systemd-health-v1.0.2/plugins/check_systemd_health.py) |
 | `check_container_health.py` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-container-health-v1.0.1/plugins/check_container_health.py) |
 | `check_kvm_disk.sh` | 1.0.1 | [Download](https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-kvm-disk-v1.0.1/plugins/check_kvm_disk.sh) |
@@ -542,7 +542,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_dnf.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.2/plugins/check_dnf.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-dnf-v1.2.3/plugins/check_dnf.py
 
 chmod +x check_dnf.py
 ```
@@ -564,7 +564,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_hpe_hardware.py \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.5/plugins/check_hpe_hardware.py
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-hpe-hardware-v1.0.6/plugins/check_hpe_hardware.py
 
 chmod +x check_hpe_hardware.py
 ```
@@ -575,7 +575,7 @@ Latest released version:
 
 ```bash
 curl -L -o check_ssacli_disks.sh \
-  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.0/plugins/check_ssacli_disks.sh
+  https://raw.githubusercontent.com/cscsanaki/Nagios-Plugins/check-ssacli-disks-v1.0.1/plugins/check_ssacli_disks.sh
 
 chmod +x check_ssacli_disks.sh
 ```
