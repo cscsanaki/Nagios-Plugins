@@ -2,6 +2,20 @@
 
 All notable changes to this repository will be documented here.
 
+## check_hpe_raid.py 1.0.3 - 2026-11-16
+
+- Corrective release following the incorrectly targeted `check-hpe-raid-v1.0.2` GitHub release tag.
+- The v1.0.2 tag referenced an older commit containing the v1.0.1 plugin implementation.
+- Prepared the complete HPE RAID monitoring improvements for publication under a new, correctly targeted release tag.
+- Includes controller cache health monitoring.
+- Includes battery/capacitor health monitoring.
+- Includes WARNING and CRITICAL severity evaluation for controller components.
+- Includes logical drive recovery and rebuild progress parsing fixes.
+- Preserves detailed cache and capacitor diagnostics in Nagios output.
+- Preserves the updated `problems` performance counter.
+- No additional monitoring functionality introduced compared with the corrected v1.0.2 source already merged into `main`.
+- Retains 45 automated regression tests validated with Python 3.9, 3.11, and 3.13.
+
 ## check_hpe_raid.py 1.0.2 - 2026-11-16
 
 - Added monitoring of HPE Smart Array controller cache health.
