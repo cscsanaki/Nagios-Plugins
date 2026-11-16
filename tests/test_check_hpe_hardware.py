@@ -438,7 +438,7 @@ class TestUnexpectedRuntimeErrors(unittest.TestCase):
         ), redirect_stdout(stdout):
 
             try:
-                result = hpe.main()
+                result = hpe.run_main()
             except OSError:
                 self.fail("Unexpected OSError escaped from main()")
 
